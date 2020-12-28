@@ -1,0 +1,27 @@
+{
+  "name": "bracketeer",
+  "version": "1.0.0",
+  "description": "A Discord bot that runs tournaments.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/slashinfty/bracketeer.git"
+  },
+  "keywords": [
+    "discord",
+    "tournament",
+    "bot"
+  ],
+  "author": "Matt Braddock",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/slashinfty/bracketeer/issues"
+  },
+  "homepage": "https://github.com/slashinfty/bracketeer#readme",
+  "dependencies": {
+    "discord.js": "^12.5.1"
+  }
+}
