@@ -67,6 +67,8 @@ Generates a .json file of the tournament.
 
 Upload a .json file to the bot. Possible types include `tournament` and `seeds`.
 
+If `seededPlayers=true`, then when you attempt to `!start` the tournament, the bot will provide you with a .json file to add the player's seeds. This could be a chess rating or ranking based on a leaderboard.
+
 ---
 
 The guide for users is available [here](Users.md).
