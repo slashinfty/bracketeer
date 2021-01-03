@@ -37,6 +37,8 @@ Example: if you wanted Solkoff and cumulative, you'd have `tiebreakers=solkoff,c
 
 The defaults for Swiss are Solkoff and cumulative. The defaults for round-robin are Sonneborn-Berger and versus.
 
+For some examples of how to set up a tournament, see [here](Examples.md).
+
 ---
 
 `!options {option=value}` or `!O {option=value}`
