@@ -2,7 +2,7 @@
 
 As a user in a server, you can join a tournament. Here are the commands available to you.
 
-**Note:** Tournaments run out of a single channel. Commands sent in other channels will not be read by the bot.
+**Note:** Tournaments operate in a single channel. Commands sent in other channels will not be read by the bot.
 
 ---
 

@@ -2,7 +2,7 @@
 
 As a server administrator, you can create, start, and end tournaments. Here are the commands and options available.
 
-**Note:** Tournaments run out of a single channel. You can only have one tournament per channel.
+**Note:** Tournaments operate in a single channel. You can only have one tournament per channel.
 
 ---
 
@@ -12,24 +12,24 @@ Creates a new tournament in the channel where the message was sent. Options shou
 
 Available options, including their default values, are in the table below. Some options only apply to specific formats.
 
-Option | Valid Values | Default
------- | ------- | ------------
-name | A string value | The channel name
-numberOfRounds | An integer greater than 0 | Determined by number of players
-seededPlayers | True/false | False
-seedOrder | asc, des | asc (ascending)
-format | elim, 2xelim, robin, 2xrobin, swiss | elim (single elimination)
-playoffs | elim, 2xelim | null
-thirdPlaceMatch | True/false | False
-bestOf | Non-negative odd integer | 1
-maxPlayers | Integer greater than 3 | null (determined by number of players)
-groupNumber | Integer great than 1 | null (no groups)
-cutType | rank, score | rank
-cutLimit | Non-negative integer | 0
-winValue | Integer greater than 0 | 1
-drawValue | Non-negative number | 0.5
-lossValue | Integer | 0
-tiebreakers | See below | See below
+Option | Valid Values | Default | Formats
+------ | ------- | ------------ | -------
+name | A string value | The channel name | any
+numberOfRounds | Integer greater than 0 | Determined by number of players | swiss
+seededPlayers | True/False | False | any
+seedOrder | asc, des | asc (ascending) | any
+format | elim, 2xelim, robin, 2xrobin, swiss | elim (single elimination) | any
+playoffs | elim, 2xelim | null | robin, 2xrobin, swiss
+thirdPlaceMatch | True/False | False | elim
+bestOf | Non-negative odd integer | 1 | swiss
+maxPlayers | Integer greater than 3 | null (determined by number of players) | any
+groupNumber | Integer great than 1 | null (no groups) | robin, 2xrobin
+cutType | rank, score | rank | robin, 2xrobin, swiss
+cutLimit | Non-negative integer | 0 | robin, 2xrobin, swiss
+winValue | Integer greater than 0 | 1 | any
+drawValue | Non-negative number | 0.5 | any
+lossValue | Integer | 0 | any
+tiebreakers | (see below) | (see below) | robin, 2xrobin, swiss
 
 Tiebreakers should be a comma-separated list in order of priority. Possible values include buchholz-cut1, solkoff, median-buchholz, sonneborn-berger, baumbach, cumulative, versus, magic-tcg, pokemon-tcg.
 
