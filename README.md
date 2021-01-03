@@ -1,5 +1,3 @@
-# Bracketeer
-
 Bracketeer is a Discord bot that runs tournaments in your server. It supports various pairing algorithms and tiebreaker systems.
 
 ## Set Up
