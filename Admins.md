@@ -22,7 +22,7 @@ format | elim, 2xelim, robin, 2xrobin, swiss | elim (single elimination) | any
 playoffs | elim, 2xelim | null | robin, 2xrobin, swiss
 thirdPlaceMatch | True/False | False | elim
 bestOf | Non-negative odd integer | 1 | swiss
-maxPlayers | Integer greater than 3 | null (determined by number of players) | any
+maxPlayers | Integer greater than 3 | null (no maximum) | any
 groupNumber | Integer great than 1 | null (no groups) | robin, 2xrobin
 cutType | rank, score | rank | robin, 2xrobin, swiss
 cutLimit | Non-negative integer | 0 | robin, 2xrobin, swiss
