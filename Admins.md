@@ -16,11 +16,11 @@ Option | Valid Values | Default | Formats
 ------ | ------- | ------------ | -------
 name | A string value | The channel name | any
 numberOfRounds | Integer greater than 0 | Determined by number of players | swiss
-seededPlayers | True/False | False | any
+seededPlayers | true, false | false | any
 seedOrder | asc, des | asc (ascending) | any
 format | elim, 2xelim, robin, 2xrobin, swiss | elim (single elimination) | any
 playoffs | elim, 2xelim | null | robin, 2xrobin, swiss
-thirdPlaceMatch | True/False | False | elim
+thirdPlaceMatch | true, false | false | elim
 bestOf | Non-negative odd integer | 1 | swiss
 maxPlayers | Integer greater than 3 | null (no maximum) | any
 groupNumber | Integer great than 1 | null (no groups) | robin, 2xrobin
@@ -29,6 +29,7 @@ cutLimit | Non-negative integer | 0 | robin, 2xrobin, swiss
 winValue | Integer greater than 0 | 1 | any
 drawValue | Non-negative number | 0.5 | any
 lossValue | Integer | 0 | any
+api | lichess, chessdotcom | null | any
 tiebreakers | (see below) | (see below) | robin, 2xrobin, swiss
 
 Tiebreakers should be a comma-separated list in order of priority. Possible values include buchholz-cut1, solkoff, median-buchholz, sonneborn-berger, baumbach, cumulative, versus, magic-tcg, pokemon-tcg.
@@ -36,6 +37,8 @@ Tiebreakers should be a comma-separated list in order of priority. Possible valu
 Example: if you wanted Solkoff and cumulative, you'd have `tiebreakers=solkoff,cumulative`.
 
 The defaults for Swiss are Solkoff and cumulative. The defaults for round-robin are Sonneborn-Berger and versus.
+
+If lichess or chessdotcom is chosen for api, then users will include their appropriate username with the `!join` command (and `seededPlayers` will be set to `true` with `seedOrder` as `des`).
 
 For some examples of how to set up a tournament, see [here](Examples.md).
 

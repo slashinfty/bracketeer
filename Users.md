@@ -6,9 +6,11 @@ As a user in a server, you can join a tournament. Here are the commands availabl
 
 ---
 
-`!join` or `!J`
+`!join [username]` or `!J [username]`
 
 Join the tournament.
+
+Username is only necessary (and required) if the tournament is using ratings from chess.com or lichess.
 
 ---
 
