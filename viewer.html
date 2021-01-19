@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <!-- Basic Page Needs
+    –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <meta charset="utf-8">
+    <title>Bracketeer - Tournament Viewer</title>
+    <meta name="description" content="Discord bot for organizing tournaments">
+    <meta name="author" content="Matt Braddock">
+
+    <!-- Mobile Specific Metas
+    –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- FONT
+    –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <link href="//fonts.googleapis.com/css?family=Raleway:400,300,600" rel="stylesheet" type="text/css">
+
+    <!-- CSS
+    –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <link rel="stylesheet" href="frameworks/normalize.css">
+    <link rel="stylesheet" href="frameworks/skeleton.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/dt/jq-3.3.1/dt-1.10.23/b-1.6.5/b-print-1.6.5/fh-3.1.7/r-2.2.7/datatables.min.css"/>
+
+    <!-- Favicon
+    –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <link rel="icon" type="image/png" href="images/favicon.png">
+
+</head>
+<body>
+
+    <!-- Primary Page Layout
+    –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <div class="container">
+        <div class="row">
+        <div style="margin-top: 5%; margin-bottom: 5%;">
+            <h4>Pairings</h4>
+            <table id="pairings" class="compact hover" width="100%"></table>
+            <p></p>
+            <h4>Standings</h4>
+            <table id="standings" class="compact hover" width="100%"></table>
+        </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT
+    –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <script type="text/javascript" src="https://cdn.datatables.net/v/dt/jq-3.3.1/dt-1.10.23/b-1.6.5/b-print-1.6.5/fh-3.1.7/r-2.2.7/datatables.min.js"></script>
+    <script>
+        $(document).ready(() => {
+            $('#pairings').DataTable({
+                data: dataSet,
+                scrollY: '290px',
+                scrollCollapse: true,
+                paging: false,
+                columns: [
+                    {title: 'Match Number', data: 'matchNumber'},
+                    {title: 'Player One', data: 'playerOne'},
+                    {title: 'Player Two', data: 'playerTwo'},
+                    {title: 'Result', data: 'result'}
+                ]
+            });
+            const standingsColumns = [
+                {title: 'Rank', data: 'rank'},
+                {title: 'Player', data: 'player'},
+                {title: 'Points', data: 'matchPoints'}
+            ];
+            $('#standings').DataTable({
+                data: dataSet,
+                scrollY: '290px',
+                scrollCollapse: true,
+                paging: false,
+                columns: standingsColumns
+            });
+        });
+    </script>
+
+<!-- End Document
+–––––––––––––––––––––––––––––––––––––––––––––––––– -->
+</body>
+</html>

@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <!-- Basic Page Needs
+    –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <meta charset="utf-8">
+    <title>Bracketeer - Generator</title>
+    <meta name="description" content="Discord bot for organizing tournaments">
+    <meta name="author" content="Matt Braddock">
+
+    <!-- Mobile Specific Metas
+    –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- FONT
+    –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <link href="//fonts.googleapis.com/css?family=Raleway:400,300,600" rel="stylesheet" type="text/css">
+
+    <!-- CSS
+    –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <link rel="stylesheet" href="frameworks/normalize.css">
+    <link rel="stylesheet" href="frameworks/skeleton.css">
+    <style>
+        /* Add this attribute to the element that needs a tooltip */
+        [data-tooltip] {
+        position: relative;
+        z-index: 2;
+        cursor: pointer;
+        }
+
+        /* Hide the tooltip content by default */
+        [data-tooltip]:before,
+        [data-tooltip]:after {
+        visibility: hidden;
+        -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=0)";
+        filter: progid: DXImageTransform.Microsoft.Alpha(Opacity=0);
+        opacity: 0;
+        pointer-events: none;
+        }
+
+        /* Position tooltip above the element */
+        [data-tooltip]:before {
+        position: absolute;
+        bottom: 150%;
+        left: 50%;
+        margin-bottom: 5px;
+        margin-left: -80px;
+        padding: 7px;
+        width: 160px;
+        -webkit-border-radius: 3px;
+        -moz-border-radius: 3px;
+        border-radius: 3px;
+        background-color: #000;
+        background-color: hsla(0, 0%, 20%, 0.9);
+        color: #fff;
+        content: attr(data-tooltip);
+        text-align: center;
+        font-size: 14px;
+        line-height: 1.2;
+        }
+
+        /* Triangle hack to make tooltip look like a speech bubble */
+        [data-tooltip]:after {
+        position: absolute;
+        bottom: 150%;
+        left: 50%;
+        margin-left: -5px;
+        width: 0;
+        border-top: 5px solid #000;
+        border-top: 5px solid hsla(0, 0%, 20%, 0.9);
+        border-right: 5px solid transparent;
+        border-left: 5px solid transparent;
+        content: " ";
+        font-size: 0;
+        line-height: 0;
+        }
+
+        /* Show tooltip content on hover */
+        [data-tooltip]:hover:before,
+        [data-tooltip]:hover:after {
+        visibility: visible;
+        -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=100)";
+        filter: progid: DXImageTransform.Microsoft.Alpha(Opacity=100);
+        opacity: 1;
+        }
+
+        input:disabled, select:disabled {
+            background-color: #dddddd;
+        }
+
+        #start-command:disabled {
+            background-color: #fff;
+        }
+    </style>
+
+    <!-- Favicon
+    –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <link rel="icon" type="image/png" href="images/favicon.png">
+
+</head>
+<body>
+
+    <!-- Primary Page Layout
+    –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <div class="container">
+        <div class="row">
+        <div style="margin-top: 5%">
+            <h4>Generator</h4>
+            <p>Use the form below to obtain a new tournament command. Options only apply if they are editable.</p>
+            <form>
+                <div class="row">
+                    <div class="four columns">
+                        <label for="tournament-name"><span data-tooltip="Must contain only letters, numbers, and hyphens.">Tournament Name</span></label>
+                        <input class="u-full-width" type="text" placeholder="Optional" id="tournament-name">
+                    </div>
+                    <div class="four columns">
+                        <label for="format"><span>Format</span></label>
+                        <select class="u-full-width" id="format">
+                            <option value="elim" selected="selected">Single Elimination</option>
+                            <option value="2xelim">Double Elimination</option>
+                            <option value="swiss">Swiss</option>
+                            <option value="dutch">Dutch</option>
+                            <option value="robin">Round-Robin</option>
+                            <option value="2xrobin">Double Round-Robin</option>
+                        </select>
+                    </div>
+                    <div class="four columns">
+                        <label for="playoffs"><span data-tooltip="Enabled if format is not elimination.">Playoffs</span></label>
+                        <select class="u-full-width" id="playoffs" disabled>
+                            <option value="none" selected="selected">None</option>
+                            <option value="elim">Single Elimination</option>
+                            <option value="2xelim">Double Elimination</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="two columns">
+                        <label for="win-value"><span data-tooltip="The amount of points earned by winning.">Win Value:</span></label>
+                        <input class="u-full-width" type="number" value="1" id="win-value">
+                    </div>
+                    <div class="two columns">
+                        <label for="draw-value"><span data-tooltip="The amount of points earned by drawing.">Draw Value</span></label>
+                        <input class="u-full-width" type="number" value="0.5" id="draw-value">
+                    </div>
+                    <div class="two columns">
+                        <label for="loss-value"><span data-tooltip="The amount of points earned by losing.">Loss Value</span></label>
+                        <input class="u-full-width" type="number" value="0" id="loss-value">
+                    </div>
+                    <div class="two columns">
+                        <label for="best-of"><span data-tooltip="Maximum number of games in a match.">Best Of</span></label>
+                        <input class="u-full-width" type="number" value="1" id="best-of" disabled>
+                    </div>
+                    <div class="two columns">
+                        <label for="max-players"><span data-tooltip="Maximum number of players. Leave blank for no maximum.">Maximum Players</span></label>
+                        <input class="u-full-width" type="number" id="max-players">
+                    </div>
+                    <div class="two columns">
+                        <label for="number-rounds"><span data-tooltip="Leave blank to be determined by number of players."># of Rounds</span></label>
+                        <input class="u-full-width" type="number" id="number-rounds" disabled>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="two columns">
+                        <label for="cut-type"><span data-tooltip="Whether to apply the cut limit by rank or points.">Cut Type</span></label>
+                        <select class="u-full-width" id="cut-type" disabled>
+                            <option value="rank" selected="selected">Rank</option>
+                            <option value="points">Points</option>
+                        </select>
+                    </div>
+                    <div class="two columns">
+                        <label for="cut-limit"><span data-tooltip="Number to use for cut type. To advance all players, use -1.">Cut Limit</span></label>
+                        <input class="u-full-width" type="number" value="-1" id="cut-limit" disabled>
+                    </div>
+                    <div class="two columns">
+                        <label for="group-number"><span data-tooltip="Number of players to a group. Leave blank for no groups.">Group Size</span></label>
+                        <input class="u-full-width" type="number" id="group-number" disabled>
+                    </div>
+                    <div class="two columns">
+                        <label for="cut-each-group"><span data-tooltip="If using groups, you can cut each group by rank.">Cut Each Group</span></label>
+                        <select class="u-full-width" id="cut-each-group" disabled>
+                            <option value="true">True</option>
+                            <option value="false" selected="selected">False</option>
+                        </select>
+                    </div>
+                    <div class="two columns">
+                        <label for="sort-players"><span data-tooltip="Requires a submission of rankings or ratings.">Sort Players</span></label>
+                        <select class="u-full-width" id="sort-players">
+                            <option value="none" selected="selected">None</option>
+                            <option value="asc">Ascending</option>
+                            <option value="des">Descending</option>
+                        </select>
+                    </div>
+                    <div class="two columns">
+                        <label for="third-place-match"><span data-tooltip="If there's a third place match in single elimination.">3rd Place Match</span></label>
+                        <select class="u-full-width" id="third-place-match">
+                            <option value="true">True</option>
+                            <option value="false" selected="selected">False</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="four columns">
+                        <label for="chess-api"><span data-tooltip="If running a chess tournament, ratings can be automatically acquired.">Chess API</span></label>
+                        <select class="u-full-width" id="chess-api">
+                            <option value="none" selected="selected">None</option>
+                            <option value="lichess-blitz">Lichess Blitz</option>
+                            <option value="lichess-bullet">Lichess Bullet</option>
+                            <option value="lichess-classical">Lichess Classical</option>
+                            <option value="lichess-rapid">Lichess Rapid</option>
+                            <option value="chess-blitz">Chess.com Blitz</option>
+                            <option value="chess-bullet">Chess.com Bullet</option>
+                            <option value="chess-rapid">Chess.com Rapid</option>
+                        </select>
+                    </div>
+                    <div class="eight columns">
+                        <label for="tiebreakers"><span data-tooltip="List in order of precedence. Options include: Buchholz Cut 1, Solkoff, Median-Buchholz, Sonneborn-Berger, Cumulative, Versus, Magic TCG, Pokemon TCG.">Tiebreakers (comma separated list)</span></label>
+                        <input class="u-full-width" type="text" placeholder="Leave blank for defaults" id="tiebreakers" disabled>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="two columns">
+                        <input class="button-primary u-full-width" type="button" value="Generate" onclick="generate()">
+                    </div>
+                    <div class="seven columns">
+                        <input class="u-full-width" type="text" id="start-command" readonly>
+                    </div>
+                    <div class="three columns">
+                        <input class="button u-full-width" type="button" value="Copy to Clipboard" id="clipboard" onclick="copyToClipboard()">
+                    </div>
+                </div>
+            </form>
+        </div>
+        </div>
+    </div>
+
+  <!-- JAVASCRIPT
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <script>
+        const name = document.getElementById('tournament-name');
+        const format = document.getElementById('format');
+        const playoffs = document.getElementById('playoffs');
+        const winValue = document.getElementById('win-value');
+        const drawValue = document.getElementById('draw-value');
+        const lossValue = document.getElementById('loss-value');
+        const bestOf = document.getElementById('best-of');
+        const maxPlayers = document.getElementById('max-players');
+        const numberOfRounds = document.getElementById('number-rounds');
+        const cutType = document.getElementById('cut-type');
+        const cutLimit = document.getElementById('cut-limit');
+        const groupNumber = document.getElementById('group-number');
+        const cutEachGroup = document.getElementById('cut-each-group');
+        const sortPlayers = document.getElementById('sort-players');
+        const thirdPlaceMatch = document.getElementById('third-place-match');
+        const chessAPI = document.getElementById('chess-api');
+        const tiebreakers = document.getElementById('tiebreakers');
+        const startCommand = document.getElementById('start-command');
+
+        format.addEventListener('change', () => {
+            switch (format.value) {
+                case 'elim': {
+                    [playoffs, bestOf, numberOfRounds, cutType, cutLimit, groupNumber, cutEachGroup, tiebreakers].forEach(e => e.disabled = true);
+                    thirdPlaceMatch.disabled = false;
+                    break;
+                }
+                case '2xelim': {
+                    [playoffs, bestOf, numberOfRounds, cutType, cutLimit, groupNumber, cutEachGroup, thirdPlaceMatch, tiebreakers].forEach(e => e.disabled = true);
+                    break;
+                }
+                case 'swiss': {
+                    [groupNumber, cutEachGroup, thirdPlaceMatch].forEach(e => e.disabled = true);
+                    [playoffs, bestOf, numberOfRounds, cutType, cutLimit, tiebreakers].forEach(e => e.disabled = false);
+                    thirdPlaceMatch.disabled = playoffs.value !== 'elim';
+                    break;
+                }
+                case 'dutch': {
+                    [groupNumber, cutEachGroup, thirdPlaceMatch].forEach(e => e.disabled = true);
+                    [playoffs, bestOf, numberOfRounds, cutType, cutLimit, tiebreakers].forEach(e => e.disabled = false);
+                    thirdPlaceMatch.disabled = playoffs.value !== 'elim';
+                    break;
+                }
+                case 'robin': 
+                case '2xrobin': {
+                    [numberOfRounds, thirdPlaceMatch].forEach(e => e.disabled = true);
+                    [playoffs, bestOf, cutLimit, cutType, groupNumber, cutEachGroup, tiebreakers].forEach(e => e.disabled = false);
+                    thirdPlaceMatch.disabled = playoffs.value !== 'elim';
+                    break;
+                }
+                default: break;
+            }
+        });
+
+        playoffs.addEventListener('change', () => thirdPlaceMatch.disabled = playoffs.value === 'elim' ? false : true);
+
+        const generate = () => {
+            let command = '!new';
+            command += name.value === '' ? '' : ' name=' + name.value.toLowerCase().replace(/[\s_]/g, '-').replace(/[^a-z\d-]/g, '');
+            command += ' format=' + format.value;
+            command += format.value.includes('elim') || playoffs.value === 'none' ? '' : ' playoffs=' + playoffs.value;
+            command += winValue.value === '1' ? '' : ' win=' + winValue.value;
+            command += drawValue.value === '0.5' ? '' : ' draw=' + drawValue.value;
+            command += lossValue.value === '0' ? '' : ' loss=' + lossValue.value;
+            command += format.value.includes('elim') || bestOf.value === '1' ? '' : ' bestof=' + bestOf.value;
+            command += maxPlayers.value === '' ? '' : ' maxplayers=' + maxPlayers.value;
+            command += (format.value.includes('swiss') || format.value.includes('dutch')) && numberOfRounds.value !== '' ? ' rounds=' + numberOfRounds.value : '';
+            command += format.value.includes('elim') || cutType.value === 'rank' ? '' : ' cuttype=points';
+            command += format.value.includes('elim') || playoffs.value === 'none' ? '' : ' cutlimit=' + cutLimit.value;
+            command += format.value.includes('robin') && groupNumber.value !== '' ? ' group=' + groupNumber.value : '';
+            command += format.value.includes('robin') && cutEachGroup.value === 'true' ? ' cutgroups=true' : '';
+            command += sortPlayers.value === 'none' ? '' : ' sort=' + sortPlayers.value;
+            command += (format.value === 'elim' || playoffs.value === 'elim') && thirdPlaceMatch.value === 'true' ? ' thirdplace=true' : '';
+            command += chessAPI.value === 'none' ? '' : ' chess=' + chessAPI.value;
+            const tiebreakerOptions = ['buchholz-cut1', 'solkoff', 'median-buchholz', 'sonneborn-berger', 'cumulative', 'versus', 'magic-tcg', 'pokemon-tcg'];
+            const tiebreakerEntry = tiebreakers.value.toLowerCase().split(',').map(t => t.trim().replace(/\s/g,'-').replace(/-(?=\d)/g, '')).filter(t => tiebreakerOptions.includes(t));
+            command += format.value.includes('elim') || tiebreakerEntry.length === 0 ? '' : ' tiebreakers=' + tiebreakerEntry.reduce((x, y) => x += x === '' ? y : ',' + y, '');
+            startCommand.value = command;
+        }
+
+        const copyToClipboard = () => {
+            startCommand.select();
+            document.execCommand('copy');
+        }
+    </script>
+
+  <!-- End Document
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+</body>
+</html>
