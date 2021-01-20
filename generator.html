@@ -108,6 +108,7 @@
         <div style="margin-top: 5%">
             <h4>Generator</h4>
             <p>Use the form below to obtain a new tournament command. Options only apply if they are editable.</p>
+            <p>Hovering over an option title will display tips.</p>
             <form>
                 <div class="row">
                     <div class="four columns">
@@ -115,7 +116,7 @@
                         <input class="u-full-width" type="text" placeholder="Optional" id="tournament-name">
                     </div>
                     <div class="four columns">
-                        <label for="format"><span>Format</span></label>
+                        <label for="format"><span data-tooltip="If running a chess tournament, Dutch or round-robin will balance colors for players.">Format</span></label>
                         <select class="u-full-width" id="format">
                             <option value="elim" selected="selected">Single Elimination</option>
                             <option value="2xelim">Double Elimination</option>
