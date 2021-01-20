@@ -1,3 +1,7 @@
+const fetch = require('node-fetch');
+const hastebin = require('hastebin-paste');
+const url = require('url');
+
 module.exports = {
     create: (em, msg) => {
         let submission = msg.content.split(' ');
@@ -100,5 +104,20 @@ module.exports = {
         }
 
         msg.channel.send({ embed: embed });
+    },
+    upload: async (t, msg) => {
+        let object;
+        try {
+            let response = await fetch(msg.attachments.first().url);
+            object = await response.json();
+        } catch (e) {
+            msg.reply('Sorry, that is not a valid file.');
+            return;
+        }
+        object.forEach(entry => t.players.find(p => p.id === entry.id).seed = entry.value);
+    },
+    info: async t => {
+        //url.parse(string)
+        //.pathname.replace(/\//,'').replace('.json','')
     }
 }
