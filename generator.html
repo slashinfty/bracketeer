@@ -305,7 +305,7 @@
             command += (format.value.includes('swiss') || format.value.includes('dutch')) && numberOfRounds.value !== '' ? ' rounds=' + numberOfRounds.value : '';
             command += format.value.includes('elim') || cutType.value === 'rank' ? '' : ' cuttype=points';
             command += format.value.includes('elim') || playoffs.value === 'none' ? '' : ' cutlimit=' + cutLimit.value;
-            command += format.value.includes('robin') && groupNumber.value !== '' ? ' group=' + groupNumber.value : '';
+            command += format.value.includes('robin') && groupNumber.value !== '' ? ' groups=' + groupNumber.value : '';
             command += format.value.includes('robin') && cutEachGroup.value === 'true' ? ' cutgroups=true' : '';
             command += sortPlayers.value === 'none' ? '' : ' sort=' + sortPlayers.value;
             command += (format.value === 'elim' || playoffs.value === 'elim') && thirdPlaceMatch.value === 'true' ? ' thirdplace=true' : '';
