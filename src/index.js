@@ -49,7 +49,9 @@ client.on('message', message => {
         }
 
         // File upload
-
+        if (message.mentions.users.has(client.user.id) && message.attachments.size !== 0) {
+            // How to read files?
+        }
     }
 
     if (!message.content.startsWith('!')) return;

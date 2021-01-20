@@ -35,5 +35,70 @@ module.exports = {
 
         const tournament = em.createTournament(msg.channel.id, options);
         if (submission.find(x => x.includes('chess')) !== undefined) options.chess = submission.find(x => x.includes('chess')).match(/(?<=\=)[\w-]+/)[0];
+
+        let desc = 'To join the tournament, type !join or !J';
+        if (tournament.hasOwnProperty('chess')) desc += tournament.chess.includes('lichess') ? ' followed by your lichess username' : ' followed by your chess.com username';
+
+        let embedFormat;
+        if (tournament.format === 'elim') embedFormat = tournament.doubleElim ? 'Double Elimination' : 'Single Elimination';
+        else if (tournament.format === 'robin') embedFormat = tournament.doubleRR ? 'Double Round-Robin' : 'Round-Robin';
+        else embedFormat = tournament.dutch ? 'Dutch' : 'Swiss';
+        
+        let embedPlayoffs = tournament.playoffs === null ? 'None' : tournament.playoffs === 'elim' ? 'Single Elimination' : 'Double Elimination';
+
+        const embed = {
+            color: 0x008e26,
+            title: tournament.name === null ? 'New Tournament' : tournament.name,
+            author: {
+                name: 'Bracketeer',
+                url: 'https://mattbraddock.com/bracketeer'
+            },
+            description: desc,
+            fields: [
+                {
+                    name: 'Format',
+                    value: embedFormat
+                },
+                {
+                    name: 'Playoffs',
+                    value: embedPlayoffs
+                }
+            ],
+            timestamp: new Date()
+        };
+
+        if (tournament.playoffs !== null) {
+            let embedCut;
+            if (tournament.cutLimit === -1) embedCut = 'All players advance to playoffs';
+            else if (tournament.cutType === 'rank') {
+                if (Number.isInteger(tournament.groupNumber)) embedCut = 'Top ' + tournament.cutLimit + ' players in each group advance to playoffs';
+                else embedCut = 'Top ' + tournament.cutLimit + ' players advance to playoffs';
+            } else embedCut = 'All players with ' + tournament.cutLimit + ' points or better advance to playoffs';
+            embed.fields.push({
+                name: 'Cut',
+                value: embedCut
+            });
+        }
+
+        if (tournament.maxPlayers !== null) embed.fields.push({
+            name: 'Maximum Players',
+            value: tournament.maxPlayers.toString()
+        });
+
+        if (tournament.format === 'swiss' && tournament.numberOfRounds !== null) embed.fields.push({
+            name: 'Number of Rounds',
+            value: tournament.numberOfRounds.toString()
+        });
+
+        if (tournament.format !== 'elim') {
+            const breakers = [...tournament.tiebreakers];
+            breakers.shift();
+            embed.fields.push({
+                name: 'Tiebreakers',
+                value: breakers.reduce((x, y) => x += x === '' ? y.replace('-', ' ') : ', ' + y.replace('-', ' '), '')
+            });
+        }
+
+        msg.channel.send({ embed: embed });
     }
 }
