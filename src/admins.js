@@ -1,6 +1,4 @@
 const fetch = require('node-fetch');
-const hastebin = require('hastebin-paste');
-const url = require('url');
 
 module.exports = {
     create: (em, msg) => {
@@ -112,12 +110,132 @@ module.exports = {
             object = await response.json();
         } catch (e) {
             msg.reply('Sorry, that is not a valid file.');
-            return;
+            return false;
         }
         object.forEach(entry => t.players.find(p => p.id === entry.id).seed = entry.value);
+        return true;
     },
     info: async t => {
-        //url.parse(string)
-        //.pathname.replace(/\//,'').replace('.json','')
+        const object = {
+            columns: {
+                pairings: [
+                    {title: 'Match Number', data: 'matchNumber'},
+                    {title: 'Player One', data: 'playerOne'},
+                    {title: 'Player Two', data: 'playerTwo'},
+                    {title: 'Active', data: 'active'},
+                    {title: 'Result', data: 'result'}
+                ],
+                standings: [
+                    {title: 'Rank', data: 'rank'},
+                    {title: 'Player', data: 'player'},
+                    {title: 'Points', data: 'matchPoints'}
+                ]
+            },
+            pairings: [],
+            standings: []
+        };
+        let matches;
+        if (t.format === 'elim') matches = t.matches.filter(m => m.active || (m.playerOne === null && m.playerTwo !== null) || (m.playerOne !== null && m.playerTwo === null));
+        else matches = t.matches.filter(m => m.round === t.currentRound);
+        matches.forEach(m => {
+            object.pairings.push({
+                matchNumber: 'R' + m.round + 'M' + m.matchNumber,
+                playerOne: m.playerOne === null ? 'N/A' : t.hasOwnProperty('chess') ? m.playerOne.alias + ' (' + m.playerOne.seed + ')' : m.playerOne.alias,
+                playerTwo: m.playerTwo === null ? 'N/A' : t.hasOwnProperty('chess') ? m.playerTwo.alias + ' (' + m.playerTwo.seed + ')' : m.playerTwo.alias,
+                active: m.active,
+                result: m.draws === 0 ? m.playerOneWins + '-' + m.playerTwoWins : m.playerOneWins + '-' + m.playerTwoWins + '-' + m.draws
+            });
+        });
+        const standings = t.standings();
+        t.tiebreakers.forEach(b => {
+            switch (b) {
+                case 'buchholz-cut1':
+                    object.columns.standings.push({title: 'Buchholz Cut 1', data: 'cutOne'});
+                    break;
+                case 'solkoff':
+                    object.columns.standings.push({title: 'Solkoff', data: 'solkoff'});
+                    break;
+                case 'median-buchholz':
+                    object.columns.standings.push({title: 'Median-Buchholz', data: 'median'});
+                    break;
+                case 'sonneborn-berger':
+                    object.columns.standings.push({title: 'Sonneborn-Berger', data: 'neustadtl'});
+                    break;
+                case 'cumulative':
+                    object.columns.standings.push({title: 'Cumulative', data: 'cumulative'}, {title: 'Opp Cumulative', data: 'oppCumulative'});
+                    break;
+                case 'magic-tcg':
+                    object.columns.standings.push({title: 'Opp Match Win%', data: 'oppMatchWinPctM'}, {title: 'Game Win%', data: 'gameWinPct'}, {title: 'Opp Game Win%', data: 'oppGameWinPct'});
+                    break;
+                case 'pokemon-tcg':
+                    object.columns.standings.push({title: 'Opp Match Win%', data: 'oppMatchWinPctP'}, {title: 'Opp Opp Match Win%', data: 'oppOppMatchWinPct'});
+                    break;
+                default:
+                    break;
+            }
+        });
+        standings.forEach((s, i) => {
+            const obj = {
+                rank: i + 1,
+                player: t.hasOwnProperty('chess') ? s.alias + ' (' + s.seed + ')' : s.alias,
+                matchPoints: s.matchPoints
+            };
+            t.tiebreakers.forEach(b => {
+                switch (b) {
+                    case 'buchholz-cut1':
+                        obj['cutOne'] = s.tiebreakers.cutOne;
+                        break;
+                    case 'solkoff':
+                        obj['solkoff'] = s.tiebreakers.solkoff;
+                        break;
+                    case 'median-buchholz':
+                        obj['median'] = s.tiebreakers.median;
+                        break;
+                    case 'sonneborn-berger':
+                        obj['neustadtl'] = s.tiebreakers.neustadtl;
+                        break;
+                    case 'cumulative':
+                        obj['cumulative'] = s.tiebreakers.cumulative;
+                        obj['oppCumulative'] = s.tiebreakers.oppCumulative;
+                        break;
+                    case 'magic-tcg':
+                        obj['oppMatchWinPctM'] = s.tiebreakers.oppMatchWinPctM;
+                        obj['gameWinPct'] = s.tiebreakers.gameWinPct;
+                        obj['oppGameWinPct'] = s.tiebreakers.oppGameWinPct;
+                        break;
+                    case 'pokemon-tcg':
+                        obj['oppMatchWinPctP'] = s.tiebreakers.oppMatchWinPctP;
+                        obj['oppOppMatchWinPct'] = s.tiebreakers.oppOppMatchWinPct;
+                        break;
+                    default:
+                        break;
+                }
+            });
+            object.standings.push(obj);
+        });
+        if (t.hasOwnProperty('binID')) {
+            const update = await fetch('https://api.jsonbin.io/v3/b/${t.binID}', {
+                method: 'PUT',
+                body: JSON.stringify(object),
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            const response = await update.json();
+            return response.hasOwnProperty('metadata');
+        } else {
+            const post = await fetch('https://api.jsonbin.io/v3/b', {
+                method: 'POST',
+                body: JSON.stringify(object),
+                headers: {
+                    'Content-Type': 'application/json',
+                    'secret-key': process.env.JSONBIN_SECRET
+                }
+            });
+            const response = await post.json();
+            if (response.hasOwnProperty('metadata')) t.binID = response.metadata.id;
+            return response.hasOwnProperty('metadata');
+        }
+        
     }
 }
