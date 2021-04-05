@@ -72,10 +72,10 @@
             // Initialize Firebase
             firebase.initializeApp(firebaseConfig);
             const database = firebase.database();
-            
+
             // Get initial data
             var data;
-            database.child('tournaments').get().then(snapshot => data = snapshot.val());
+            database.ref('tournaments').get().then(snapshot => data = snapshot.val());
 
             // Fill dropdown with tournaments
             const select = document.getElementById('tournament');
