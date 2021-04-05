@@ -218,7 +218,7 @@ client.on('message', async message => {
         else if (tournament.format === 'robin') embedFormat = tournament.doubleRR ? 'Double Round-Robin' : 'Round-Robin';
         else embedFormat = tournament.dutch ? 'Dutch' : 'Swiss';
         
-        let embedPlayoffs = tournament.playoffs === null ? 'None' : tournament.playoffs === 'elim' ? 'Single Elimination' : 'Double Elimination';
+        let embedPlayoffs = tournament.playoffs === null || tournament.playoffs === undefined ? 'None' : tournament.playoffs === 'elim' ? 'Single Elimination' : 'Double Elimination';
 
         const embed = {
             color: 0x008e26,
@@ -241,7 +241,7 @@ client.on('message', async message => {
             timestamp: new Date()
         };
 
-        if (tournament.playoffs !== null) {
+        if (tournament.playoffs !== null && tournament.playoffs !== undefined) {
             let embedCut;
             if (tournament.cutLimit === -1) embedCut = 'All players advance to playoffs';
             else if (tournament.cutType === 'rank') {
