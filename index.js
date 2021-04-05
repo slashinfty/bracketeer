@@ -9,7 +9,7 @@ const TournamentOrganizer = require('tournament-organizer');
 require('dotenv').config();
 
 // Initialize Firebase Admin SDK
-const serviceAccount = require(path.join(__dirname, + '.firebase-admin-sdk.json'));
+const serviceAccount = require(path.join(__dirname, '.firebase-admin-sdk.json'));
 const app = admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
     databaseURL: "https://bracketeer-22018-default-rtdb.firebaseio.com"
