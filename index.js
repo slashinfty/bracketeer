@@ -128,7 +128,7 @@ const info = t => {
         object.standings.push(obj);
     });
     const ref = db.ref('tournaments');
-    ref.child(t.id).set(object);
+    ref.child(t.eventID).set(object);
 }
 
 // Bot is on
@@ -296,7 +296,7 @@ client.on('message', async message => {
             tournament.waiting = false;
             tournament.startEvent();
             info(tournament);
-            message.channel.send('Your tournament has started! View pairings at https://slashinfty.github.io/bracketeer/viewer?data=' + tournament.id);
+            message.channel.send('Your tournament has started! View pairings at https://slashinfty.github.io/bracketeer/viewer?data=' + tournament.eventID);
             return;
         }
 
@@ -378,7 +378,7 @@ client.on('message', async message => {
     // Get pairings and standings with !info or !status
     if (message.content.startsWith('!info') || message.content.startsWith('!status')) {
         info(tournament);
-        message.reply('You can view current pairings and standings at https://slashinfty.github.io/bracketeer/viewer?data=' + tournament.id);
+        message.reply('You can view current pairings and standings at https://slashinfty.github.io/bracketeer/viewer?data=' + tournament.eventID);
         return;
     }
 
@@ -419,7 +419,7 @@ client.on('message', async message => {
         if (newMatches > 0) {
             let msg = 'There are new matches!\n';
             newMatches.forEach(nm => msg += '\nRound ' + nm.round + ' Match ' + nm.matchNumber + ' - ' + nm.playerOne.alias + ' vs ' + nm.playerTwo.alias);
-            msg += '\n\nYou can view current pairings and standings at https://slashinfty.github.io/bracketeer/viewer?data=' + tournament.id;
+            msg += '\n\nYou can view current pairings and standings at https://slashinfty.github.io/bracketeer/viewer?data=' + tournament.eventID;
             message.channel.send(msg);
         }
         return;
