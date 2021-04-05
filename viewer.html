@@ -75,13 +75,19 @@
 
             // Get initial data
             var data;
-            database.ref('tournaments').get().then(snapshot => data = snapshot.val());
+            database.ref('tournaments').get().then(snapshot => {
+                console.log('snapshot.val() = ' + snapshot.val());
+                data = snapshot.val();
+            });
+            console.log('data = ' + data);
 
             // Fill dropdown with tournaments
             const select = document.getElementById('tournament');
             for (const prop in data) {
                 const opt = document.createElement('option');
+                console.log('prop = ' + prop);
                 opt.value = prop;
+                console.log('data[prop].name = ' + data[prop].name);
                 opt.text = data[prop].name;
                 select.add(opt);
             }

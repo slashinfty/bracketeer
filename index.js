@@ -316,13 +316,13 @@ client.on('message', async message => {
             }
             tournament.startEvent();
             const update = info(tournament);
-            message.channel.send('Your tournament has started! View pairings at https://slashinfty.github.io/bracketeer/viewer?data=' + tournament.binID);
+            message.channel.send('Your tournament has started! View pairings at https://slashinfty.github.io/bracketeer/viewer?data=' + tournament.eventID);
             return;
         }
 
         // Get a list of all active players with !list
         if (message.content.startsWith('!list')) {
-            const activePlayers = tournament.players.filter(p => p.active);
+            const activePlayers = tournament.players.filter(p => p.active).map(a => a.alias);
             const count = activePlayers.length;
             const list = count === 0 ? '' : '\n\n' + activePlayers.toString().replace(/,/g, ', '); 
             message.channel.send('There are ' + count + ' active players.' + list);
@@ -335,6 +335,8 @@ client.on('message', async message => {
             const attachment = new Discord.MessageAttachment(buffer, tournament.name + '.json');
             message.channel.send('The tournament is now over.', attachment);
             EventManager.removeTournament(tournament);
+            const ref = db.ref('tournaments');
+            ref.child(tournament.eventID).removeValue();
         }
 
     }
@@ -370,7 +372,7 @@ client.on('message', async message => {
     // Get your current match with !pairing or !P
     if (message.content.startsWith('!pairing') || message.content.startsWith('!P')) {
         const active = tournament.activeMatches();
-        const match = active.filter(m => m.playerOne.id === message.author.id || m.playerTwo.id === message.author.id);
+        const match = active.find(m => m.playerOne.id === message.author.id || m.playerTwo.id === message.author.id);
         if (match === undefined) message.reply('You do not have an active match.');
         else message.reply('Round ' + match.round + ' Match ' + match.matchNumber + ' - ' + match.playerOne.alias + ' vs ' + match.playerTwo.alias);
     }
@@ -389,7 +391,7 @@ client.on('message', async message => {
             message.react('❌');
             return;
         }
-        let games = result[0].split('-').filter(g => parseInt(g));
+        let games = result[0].split('-').map(g => parseInt(g));
         if (games.length !== 2 && games.length !== 3) {
             message.react('❌');
             return;
