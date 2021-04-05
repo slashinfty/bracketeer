@@ -1,4 +1,6 @@
 .env
+.firebase-admin-sdk.json
+test*.js
 
 # Logs
 logs
