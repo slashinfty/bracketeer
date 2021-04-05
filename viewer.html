@@ -77,7 +77,10 @@
         $(document).ready(async () => {
             // Get initial data
             var data;
-            database.child('tournaments').get().then(snapshot => data = snapshot.val());
+            database.get().then(snapshot => {
+                const db = snapshot.val();
+                data = db.tournaments;
+            });
 
             // Fill dropdown with tournaments
             const select = document.getElementById('tournament');
