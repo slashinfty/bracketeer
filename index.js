@@ -26,7 +26,7 @@ client.login(process.env.DISCORD_TOKEN);
 const EventManager = new TournamentOrganizer.EventManager();
 
 // Save tournaments function
-const save = () => fs.writeFileSync(path.join(__dirname + 'static/save.json'), JSON.stringify(EventManager.tournaments));
+const save = () => fs.writeFileSync(path.join(__dirname + '/static/save.json'), JSON.stringify(EventManager.tournaments));
 
 // Set info and share link
 const info = t => {
