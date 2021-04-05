@@ -53,34 +53,29 @@
     <!-- Add SDKs for Firebase products -->
     <script src="https://www.gstatic.com/firebasejs/8.3.2/firebase-database.js"></script>
 
-    <script>
-        // Firebase configuration
-        var firebaseConfig = {
-            apiKey: "AIzaSyDHF0Y3_9jGK36heIMdtjU1y2Mf2oou1Fw",
-            authDomain: "bracketeer-22018.firebaseapp.com",
-            databaseURL: "https://bracketeer-22018-default-rtdb.firebaseio.com",
-            projectId: "bracketeer-22018",
-            storageBucket: "bracketeer-22018.appspot.com",
-            messagingSenderId: "633046274851",
-            appId: "1:633046274851:web:f42e6fb356e6ea94a7b296",
-            measurementId: "G-RMXF948GSQ"
-        };
-
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
-    </script>
-
     <script type="text/javascript" src="https://cdn.datatables.net/v/dt/jq-3.3.1/dt-1.10.23/b-1.6.5/b-print-1.6.5/fh-3.1.7/r-2.2.7/datatables.min.js"></script>
 
     <script>
         $(document).ready(async () => {
+            // Firebase configuration
+            var firebaseConfig = {
+                apiKey: "AIzaSyDHF0Y3_9jGK36heIMdtjU1y2Mf2oou1Fw",
+                authDomain: "bracketeer-22018.firebaseapp.com",
+                databaseURL: "https://bracketeer-22018-default-rtdb.firebaseio.com",
+                projectId: "bracketeer-22018",
+                storageBucket: "bracketeer-22018.appspot.com",
+                messagingSenderId: "633046274851",
+                appId: "1:633046274851:web:f42e6fb356e6ea94a7b296",
+                measurementId: "G-RMXF948GSQ"
+            };
+
+            // Initialize Firebase
+            firebase.initializeApp(firebaseConfig);
+            const database = firebase.database();
+            
             // Get initial data
             var data;
-            database.get().then(snapshot => {
-                const db = snapshot.val();
-                data = db.tournaments;
-            });
+            database.child('tournaments').get().then(snapshot => data = snapshot.val());
 
             // Fill dropdown with tournaments
             const select = document.getElementById('tournament');
