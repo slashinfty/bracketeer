@@ -145,7 +145,7 @@ client.once('ready', () => {
     });
 
     // Recover saved information
-    const file = path.join(__dirname + 'static/save.json');
+    const file = path.join(__dirname + '/static/save.json');
     if (!fs.existsSync(file)) {
         const empty = [];
         fs.writeFileSync(file, JSON.stringify(empty));
