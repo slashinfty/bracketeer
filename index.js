@@ -146,7 +146,10 @@ client.once('ready', () => {
 
     // Recover saved information
     const file = path.join(__dirname + 'static/save.json');
-    if (!fs.existsSync(file)) return;
+    if (!fs.existsSync(file)) {
+        const empty = [];
+        fs.writeFileSync(file, JSON.stringify(empty));
+    };
     const contents = fs.readFileSync(file);
     EventManager.tournaments = JSON.parse(contents);
 });
