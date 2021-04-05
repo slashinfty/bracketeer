@@ -19,7 +19,7 @@ const app = admin.initializeApp({
 const db = app.database();
 
 // Start Discord
-const client = new Discord.client();
+const client = new Discord.Client();
 client.login(process.env.DISCORD_TOKEN);
 
 // Start Tournament Organizer
