@@ -127,29 +127,8 @@ const info = t => {
         });
         object.standings.push(obj);
     });
-    if (tournament.hasOwnProperty('binID')) {
-        const update = await fetch('https://api.jsonbin.io/v3/b/${t.binID}', {
-            method: 'PUT',
-            body: JSON.stringify(object),
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
-        const response = await update.json();
-        return response.hasOwnProperty('metadata');
-    } else {
-        const post = await fetch('https://api.jsonbin.io/v3/b', {
-            method: 'POST',
-            body: JSON.stringify(object),
-            headers: {
-                'Content-Type': 'application/json',
-                'secret-key': process.env.JSONBIN_SECRET
-            }
-        });
-        const response = await post.json();
-        if (response.hasOwnProperty('metadata')) tournament.binID = response.metadata.id;
-        return response.hasOwnProperty('metadata');
-    }
+    const ref = db.ref('tournaments');
+    ref.child(t.id).set(object);
 }
 
 // Bot is on
@@ -313,9 +292,8 @@ client.on('message', async message => {
             object.forEach(entry => tournament.players.find(p => p.id === entry.id).seed = entry.value);
             tournament.waiting = false;
             tournament.startEvent();
-            const update = info(tournament);
-            if (update) message.channel.send('Your tournament has started! View pairings at https://slashinfty.github.io/bracketeer/viewer?data=' + tournament.id);
-            else message.reply('Sorry, there was a problem generating the pairings preview. Try !info');
+            info(tournament);
+            message.channel.send('Your tournament has started! View pairings at https://slashinfty.github.io/bracketeer/viewer?data=' + tournament.id);
             return;
         }
 
@@ -334,9 +312,8 @@ client.on('message', async message => {
                 return;
             }
             tournament.startEvent();
-            const update = Admin.info(tournament); //TODO change
-            if (update) message.channel.send('Your tournament has started! View pairings at https://slashinfty.github.io/bracketeer/viewer?data=' + tournament.binID);
-            else message.reply('Sorry, there was a problem generating the pairings preview. Try !info');
+            const update = info(tournament);
+            message.channel.send('Your tournament has started! View pairings at https://slashinfty.github.io/bracketeer/viewer?data=' + tournament.binID);
             return;
         }
 
@@ -397,9 +374,8 @@ client.on('message', async message => {
 
     // Get pairings and standings with !info or !status
     if (message.content.startsWith('!info') || message.content.startsWith('!status')) {
-        const update = info(tournament);
-        if (update) message.reply('You can view current pairings and standings at https://slashinfty.github.io/bracketeer/viewer?data=' + tournament.id);
-        else message.reply('Sorry, there was a problem. Try again later?');
+        info(tournament);
+        message.reply('You can view current pairings and standings at https://slashinfty.github.io/bracketeer/viewer?data=' + tournament.id);
         return;
     }
 
@@ -420,8 +396,7 @@ client.on('message', async message => {
         let reportingPlayer;
         if (message.member.hasPermission("ADMINISTRATOR") && message.mentions.users.size === 1) {
             reportingPlayer = tournament.players.find(p => p.id === message.mentions.users.first().id);
-            // TODO Don't look at active, admins can rewrite
-            match = tournament.activeMatches().find(m => m.playerOne === reportingPlayer || m.playerTwo === reportingPlayer);
+            match = tournament.matches.find(m => m.id === reportingPlayer.results[reportingPlayer.results.length - 1]);
         } else {
             reportingPlayer = tournament.players.find(p => p.id === message.author.id);
             match = tournament.activeMatches().find(m => m.playerOne === reportingPlayer || m.playerTwo === reportingPlayer);
@@ -430,10 +405,20 @@ client.on('message', async message => {
             message.react('❌');
             return;
         }
-        if (match.playerOne === reportingPlayer) tournament.result(match, games[0], games[1], games[2]);
-        else tournament.result(match, games[1], games[0], games[2]);
+        let newMatches = [];
+        if (match.playerOne === reportingPlayer) newMatches = tournament.result(match, games[0], games[1], games[2]);
+        else newMatches = tournament.result(match, games[1], games[0], games[2]);
+        if (newMatches === null) {
+            message.react('❌');
+            return;
+        }
         message.react('✅');
-        // TODO New matches? Maybe TO should return new matches?
+        if (newMatches > 0) {
+            let msg = 'There are new matches!\n';
+            newMatches.forEach(nm => msg += '\nRound ' + nm.round + ' Match ' + nm.matchNumber + ' - ' + nm.playerOne.alias + ' vs ' + nm.playerTwo.alias);
+            msg += '\n\nYou can view current pairings and standings at https://slashinfty.github.io/bracketeer/viewer?data=' + tournament.id;
+            message.channel.send(msg);
+        }
         return;
     }
 
