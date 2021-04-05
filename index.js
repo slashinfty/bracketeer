@@ -49,8 +49,8 @@ const info = t => {
         standings: []
     };
     let matches;
-    if (tournament.format === 'elim') matches = tournament.matches.filter(m => m.active || (m.playerOne === null && m.playerTwo !== null) || (m.playerOne !== null && m.playerTwo === null));
-    else matches = t.matches.filter(m => m.round === tournament.currentRound);
+    if (t.format === 'elim') matches = t.matches.filter(m => m.active || (m.playerOne === null && m.playerTwo !== null) || (m.playerOne !== null && m.playerTwo === null));
+    else matches = t.matches.filter(m => m.round === t.currentRound);
     matches.forEach(m => {
         object.pairings.push({
             matchNumber: 'R' + m.round + 'M' + m.matchNumber,
@@ -60,8 +60,8 @@ const info = t => {
             result: m.draws === 0 ? m.playerOneWins + '-' + m.playerTwoWins : m.playerOneWins + '-' + m.playerTwoWins + '-' + m.draws
         });
     });
-    const standings = tournament.standings();
-    tournament.tiebreakers.forEach(b => {
+    const standings = t.standings();
+    t.tiebreakers.forEach(b => {
         switch (b) {
             case 'buchholz-cut1':
                 object.columns.standings.push({title: 'Buchholz Cut 1', data: 'cutOne'});
@@ -91,10 +91,10 @@ const info = t => {
     standings.forEach((s, i) => {
         const obj = {
             rank: i + 1,
-            player: tournament.hasOwnProperty('chess') ? s.alias + ' (' + s.seed + ')' : s.alias,
+            player: t.hasOwnProperty('chess') ? s.alias + ' (' + s.seed + ')' : s.alias,
             matchPoints: s.matchPoints
         };
-        tournament.tiebreakers.forEach(b => {
+        t.tiebreakers.forEach(b => {
             switch (b) {
                 case 'buchholz-cut1':
                     obj['cutOne'] = s.tiebreakers.cutOne;
