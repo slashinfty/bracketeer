@@ -6,7 +6,7 @@ const Discord = require('discord.js');
 const TournamentOrganizer = require('tournament-organizer');
 
 // Load token
-require('dotenv').config();
+require('dotenv').config({ path: path.resolve(__dirname, './.env') });
 
 // Initialize Firebase Admin SDK
 const serviceAccount = require(path.join(__dirname, '.firebase-admin-sdk.json'));
