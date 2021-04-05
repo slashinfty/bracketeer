@@ -205,7 +205,7 @@ client.on('message', async message => {
             options.seedOrder = submission.find(x => x.includes('sort')).match(/(?<=\=)[\w-]+/)[0];
         }
         if (submission.find(x => x.includes('thirdplace')) !== undefined) options.thirdPlaceMatch = 'true' === submission.find(x => x.includes('thirdplace')).match(/(?<=\=)[\w-]+/)[0];
-        if (submission.find(x => x.includes('tiebreakers')) !== undefined) options.tiebreakers = submission.find(x => x.includes('')).match(/(?<=\=)[\w-,]+/)[0].split(',');
+        if (submission.find(x => x.includes('tiebreakers')) !== undefined) options.tiebreakers = submission.find(x => x.includes('tiebreakers')).match(/(?<=\=)[\w-,]+/)[0].split(',');
 
         const tournament = EventManager.createTournament(message.channel.id, options);
         if (submission.find(x => x.includes('chess')) !== undefined) options.chess = submission.find(x => x.includes('chess')).match(/(?<=\=)[\w-]+/)[0];
