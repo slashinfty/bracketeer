@@ -8,4 +8,3 @@ Assign it a role that has the following permissions:
 
 * Attach Files
 * Add Reactions
-* Mention @everyone, @here, and All Roles
