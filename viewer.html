@@ -74,12 +74,12 @@
             const database = firebase.database();
 
             // Get initial data
-            var data;
+            var data, pairingsTable, standingsTable;
+            const select = document.getElementById('tournament');
             database.ref('tournaments').get().then(snapshot => {
                 data = snapshot.val();
                 console.log(JSON.stringify(data));
                 // Fill dropdown with tournaments
-                const select = document.getElementById('tournament');
                 for (const prop in data) {
                     const opt = document.createElement('option');
                     opt.value = prop;
@@ -91,14 +91,14 @@
                 let url = new URL(window.location.href);
                 let tableData;
                 if (url.searchParams.has('data')) tableData = data[url.searchParams.get('data')];
-                var pairingsTable = $('#pairings').DataTable({
+                pairingsTable = $('#pairings').DataTable({
                     data: tableData !== undefined ? tableData.pairings : {},
                     scrollY: '290px',
                     scrollCollapse: true,
                     paging: false,
                     columns: tableData !== undefined ? tableData.columns.pairings : {}
                 });
-                var standingsTable = $('#standings').DataTable({
+                standingsTable = $('#standings').DataTable({
                     data: tableData !== undefined ? tableData.standings : {},
                     scrollY: '290px',
                     scrollCollapse: true,
@@ -108,7 +108,6 @@
             });
 
             // Redraw tables when values updated
-            const select = document.getElementById('tournament');
             var ref = database.ref('tournaments/' + select.value);
             ref.on('value', snapshot => {
                 data = snapshot.val();
