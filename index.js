@@ -327,7 +327,7 @@ client.on('message', async message => {
         if (/^!list$/i.test(message.content)) {
             const activePlayers = tournament.players.filter(p => p.active).map(a => a.alias);
             const count = activePlayers.length;
-            const list = count === 0 ? '' : '\n\n' + activePlayers.toString().replace(/,/g, ', '); 
+            const list = count === 0 || tournament.active ? '' : '\n\n' + activePlayers.toString().replace(/,/g, ', '); 
             message.channel.send('There are ' + count + ' active players.' + list);
         }
 
