@@ -61,7 +61,7 @@ const info = t => {
             result: m.draws === 0 ? m.playerOneWins + '-' + m.playerTwoWins : m.playerOneWins + '-' + m.playerTwoWins + '-' + m.draws
         });
     });
-    const standings = t.standings();
+    const standings = t.standings(false);
     t.tiebreakers.forEach(b => {
         switch (b) {
             case 'buchholz-cut1':
@@ -153,6 +153,7 @@ client.once('ready', () => {
     };
     const contents = fs.readFileSync(file);
     EventManager.tournaments = JSON.parse(contents);
+    console.table(EventManager.tournaments);//TESTING
 });
 
 // Interpreting messages
@@ -411,6 +412,7 @@ client.on('message', async message => {
         let newMatches = [];
         if (match.playerOne === reportingPlayer) newMatches = tournament.result(match, games[0], games[1], games[2]);
         else newMatches = tournament.result(match, games[1], games[0], games[2]);
+        console.log(newMatches);//TESTING
         if (newMatches === null) {
             message.react('❌');
             return;
@@ -422,6 +424,14 @@ client.on('message', async message => {
             newMatches.forEach(nm => msg += '\nRound ' + nm.round + ' Match ' + nm.matchNumber + ' - ' + nm.playerOne.alias + ' vs ' + nm.playerTwo.alias);
             msg += '\n\nYou can view current pairings and standings at https://slashinfty.github.io/bracketeer/viewer?data=' + tournament.eventID;
             message.channel.send(msg);
+        }
+        if (!tournament.active) {
+            const buffer = Buffer.from(JSON.stringify(tournament));
+            const attachment = new Discord.MessageAttachment(buffer, tournament.name + '.json');
+            message.channel.send('The tournament is now over.', attachment);
+            EventManager.removeTournament(tournament);
+            const ref = db.ref('tournaments');
+            ref.child(tournament.eventID).set(null);
         }
         return;
     }

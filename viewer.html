@@ -105,14 +105,13 @@
                     paging: false,
                     columns: tableData !== undefined ? tableData.columns.standings : {}
                 });
-            });
-
-            // Redraw tables when values updated
-            var ref = database.ref('tournaments/' + select.value);
-            ref.on('value', snapshot => {
-                data = snapshot.val();
-                pairingsTable.draw();
-                standingsTable.draw();
+                // Redraw tables when values updated
+                var ref = database.ref('tournaments/' + select.value);
+                ref.on('value', snapshot => {
+                    data = snapshot.val();
+                    pairingsTable.draw();
+                    standingsTable.draw();
+                });
             });
         });
     </script>
