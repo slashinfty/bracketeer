@@ -156,15 +156,17 @@ client.once('ready', () => {
 
 // Interpreting messages
 client.on('message', async message => {
-    console.log(message.content);
     // Ignore bots and anything that doesn't start with !
     if (message.author.bot || !message.content.startsWith('!')) return;
 
     // Get help with !bracketeer
-    if (message.content.startsWith('!bracketeer')) message.reply('If you need help, please check out https://slashinfty.github.io/bracketeer/');
+    if (/^!bracketeer$/i.test(message.content)) {
+        message.reply('If you need help, please check out https://slashinfty.github.io/bracketeer/');
+        return;
+    }
 
     // Create a tournament with !new
-    if (message.member.hasPermission('ADMINISTRATOR') && message.content.startsWith('!new')) {
+    if (message.member.hasPermission('ADMINISTRATOR') && /^!new(\s\w+=[\w-,]+)*/i.test(message.content)) {
         // If !new without options, link to option generator
         if (message.content === '!new') {
             message.reply(`Looking for how to start a tournament? Try this: https://slashinfty.github.io/bracketeer/generator`);
@@ -284,7 +286,7 @@ client.on('message', async message => {
     // Admin commands
     if (message.member.hasPermission('ADMINISTRATOR')) {
         // Upload a file with !upload
-        if (message.content.startsWith('!upload') && message.attachments.size !== 0 && tournament.hasOwnProperty('waiting') && tournament.waiting) {
+        if (/^!upload$/i.test(message.content) && message.attachments.size !== 0 && tournament.hasOwnProperty('waiting') && tournament.waiting) {
             let object;
             try {
                 let response = await fetch(message.attachments.first().url);
@@ -302,7 +304,7 @@ client.on('message', async message => {
         }
 
         // Start the tournament with !start
-        if (message.content.startsWith('!start')) {
+        if (/^!start$/i.test(message.content)) {
             if (tournament.seededPlayers && !tournament.hasOwnProperty('chess')) {
                 tournament.waiting = true;
                 const content = tournament.players.map(p => ({
@@ -322,7 +324,7 @@ client.on('message', async message => {
         }
 
         // Get a list of all active players with !list
-        if (message.content.startsWith('!list')) {
+        if (/^!list$/i.test(message.content)) {
             const activePlayers = tournament.players.filter(p => p.active).map(a => a.alias);
             const count = activePlayers.length;
             const list = count === 0 ? '' : '\n\n' + activePlayers.toString().replace(/,/g, ', '); 
@@ -330,7 +332,8 @@ client.on('message', async message => {
         }
 
         // End a tournament early with !end
-        if (message.content.startsWith('!end')) {
+        // regex: /^!end$/i
+        if (/^!end$/i.test(message.content)) {
             tournament.active = false;
             const buffer = Buffer.from(JSON.stringify(tournament));
             const attachment = new Discord.MessageAttachment(buffer, tournament.name + '.json');
@@ -343,8 +346,7 @@ client.on('message', async message => {
     }
 
     // Join a tournament with !join or !J
-    // regex: /^!(j(?=\s|$)|join)(\s\w*)?/i
-    if (message.content.startsWith('!join') || message.content.startsWith('!J')) {
+    if (/^!(j(?=\s|$)|join)(\s\w*)?/i.test(message.content)) {
         let seed = null;
         if (tournament.hasOwnProperty('chess')) {
             const usernameArray = message.content.match(/(?<=[!J|!join]\s)[\w-]+/);
@@ -372,8 +374,7 @@ client.on('message', async message => {
     }
 
     // Get your current match with !pairing or !P
-    // regex: /^!(p|pairing)$/i
-    if (message.content.startsWith('!pairing') || message.content.startsWith('!P')) {
+    if (/^!(p|pairing)$/i.test(message.content)) {
         const active = tournament.activeMatches();
         const match = active.find(m => m.playerOne.id === message.author.id || m.playerTwo.id === message.author.id);
         if (match === undefined) message.reply('You do not have an active match.');
@@ -381,25 +382,16 @@ client.on('message', async message => {
     }
 
     // Get pairings and standings with !info or !status
-    // regex: /^!(info|status)$/i
-    if (message.content.startsWith('!info') || message.content.startsWith('!status')) {
+    if (/^!(info|status)$/i.test(message.content)) {
         info(tournament);
         message.reply('You can view current pairings and standings at https://slashinfty.github.io/bracketeer/viewer?data=' + tournament.eventID);
         return;
     }
 
     // Report results with !results or !report or !R
-    if (message.content.startsWith('!results') || message.content.startsWith('!report') || message.content.startsWith('!R')) {
-        let result = message.content.match(/(?<=[!R|!result|!report]\s)\d+-\d+(-\d+)?/);
-        if (result === null) {
-            message.react('❌');
-            return;
-        }
-        let games = result[0].split('-').map(g => parseInt(g));
-        if (games.length !== 2 && games.length !== 3) {
-            message.react('❌');
-            return;
-        }
+    if (/^!(r(?=\s)|result|report)\s\d+-\d+(-\d+)?(\s<@!\d+>)?/i.test(message.content)) {
+        const result = message.content.match(/(?<=[!R|!result|!report]\s)\d+-\d+(-\d+)?/);
+        const games = result[0].split('-').map(g => parseInt(g));
         if (games.length === 2) games.push(0);
         let match;
         let reportingPlayer;
@@ -432,7 +424,7 @@ client.on('message', async message => {
     }
 
     // Quit the tournament with !quit or !Q
-    if (message.content.startsWith('!quit') || message.content.startsWith('!Q')) {
+    if (/^!(q|quit)$/i.test(message.content)) {
         let player;
         if (message.member.hasPermission("ADMINISTRATOR") && message.mentions.users.size === 1) player = tournament.players.find(p => p.id === message.mentions.users.first().id);
         else player = tournament.players.find(p => p.id === message.author.id);
