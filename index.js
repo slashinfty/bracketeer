@@ -31,6 +31,7 @@ const save = () => fs.writeFileSync(path.join(__dirname + '/static/save.json'), 
 // Set info and share link
 const info = t => {
     const object = {
+        name: t.name,
         columns: {
             pairings: [
                 {title: 'Match Number', data: 'matchNumber'},
