@@ -156,6 +156,7 @@ client.once('ready', () => {
 
 // Interpreting messages
 client.on('message', async message => {
+    console.log('Channel Manager:\n' + message.guild.channels);
     // Ignore bots and anything that doesn't start with !
     if (message.author.bot || !message.content.startsWith('!')) return;
 
@@ -431,9 +432,18 @@ client.on('message', async message => {
         if (message.member.hasPermission("ADMINISTRATOR") && message.mentions.users.size === 1) player = tournament.players.find(p => p.id === message.mentions.users.first().id);
         else player = tournament.players.find(p => p.id === message.author.id);
         if (player === undefined) message.react('❌');
-        const remove = tournament.removePlayer(player);
-        if (remove) message.react('✅'); //TODO
-        else message.react('❌');
+        const newMatches = tournament.removePlayer(player);
+        if (newMatches === false) {
+            message.react('❌');
+            return;
+        } else message.react('✅');
+        info(tournament);
+        if (typeof newMatches === object && newMatches > 0) {
+            let msg = 'There are new matches!\n';
+            newMatches.forEach(nm => msg += '\nRound ' + nm.round + ' Match ' + nm.matchNumber + ' - ' + nm.playerOne.alias + ' vs ' + nm.playerTwo.alias);
+            msg += '\n\nYou can view current pairings and standings at https://slashinfty.github.io/bracketeer/viewer?data=' + tournament.eventID;
+            message.channel.send(msg);
+        }
     }
 
 });
@@ -445,16 +455,28 @@ client.on('guildMemberRemove', member => {
     if (tournament === undefined) return;
     const player = tournament.players.find(p => p.id === member.id);
     if (player === undefined) return;
-    const remove = tournament.removePlayer(player);
-    //TODO
+    const newMatches = tournament.removePlayer(player);
+    if (newMatches === false) return;
+    info(tournament);
+    if (typeof newMatches === object && newMatches > 0) {
+        let msg = 'There are new matches!\n';
+        newMatches.forEach(nm => msg += '\nRound ' + nm.round + ' Match ' + nm.matchNumber + ' - ' + nm.playerOne.alias + ' vs ' + nm.playerTwo.alias);
+        msg += '\n\nYou can view current pairings and standings at https://slashinfty.github.io/bracketeer/viewer?data=' + tournament.eventID;
+        message.channel.send(msg);
+    }
 });
 
+// If the channel where the tournament is being ran is deleted, then delete the tournament
 client.on('channelDelete', channel => {
     const tournament = EventManager.tournaments.find(t => t.eventId === channel.id);
     if (tournament === undefined) return;
     EventManager.removeTournament(tournament);
     const ref = db.ref('tournaments');
     ref.child(tournament.eventID).set(null);
+});
+
+client.on('guildDelete', guild => {
+
 });
 
 // Save tournaments every minute
