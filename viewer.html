@@ -77,6 +77,7 @@
             var data;
             database.ref('tournaments').get().then(snapshot => {
                 data = snapshot.val();
+                console.log(JSON.stringify(data));
                 // Fill dropdown with tournaments
                 const select = document.getElementById('tournament');
                 for (const prop in data) {
@@ -107,6 +108,7 @@
             });
 
             // Redraw tables when values updated
+            const select = document.getElementById('tournament');
             var ref = database.ref('tournaments/' + select.value);
             ref.on('value', snapshot => {
                 data = snapshot.val();

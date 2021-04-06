@@ -26,7 +26,7 @@ client.login(process.env.DISCORD_TOKEN);
 const EventManager = new TournamentOrganizer.EventManager();
 
 // Save tournaments function
-const save = () => fs.writeFileSync(path.join(__dirname + '/static/save.json'), JSON.stringify(EventManager.tournaments));
+const save = () => fs.writeFileSync(path.join(__dirname + '/static/save.json'), EventManager.tournaments);
 
 // Set info and share link
 const info = t => {
@@ -335,7 +335,7 @@ client.on('message', async message => {
         // regex: /^!end$/i
         if (/^!end$/i.test(message.content)) {
             tournament.active = false;
-            const buffer = Buffer.from(JSON.stringify(tournament));
+            const buffer = Buffer.from(tournament);
             const attachment = new Discord.MessageAttachment(buffer, tournament.name + '.json');
             message.channel.send('The tournament is now over.', attachment);
             EventManager.removeTournament(tournament);
