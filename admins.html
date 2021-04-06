@@ -46,14 +46,19 @@
         </p>
         <p>
             <code>!list</code><br>
-            Get a list of all active players.
+            Get a count and list of all active players. List only prints if the tournament has not started.
         </p>
         <p>
             <code>!end</code><br>
             Ends a tournament.
         </p>
         <p>
-            Admins also have the ability to remove other users (same command as users, but also tagging the user at the end), and overwrite existing results (by tagging the player at the end who's score is listed first - this is limited to editing the most recent match of the tagged player).
+            <code>!result w-l[-d] @winningplayer</code>
+            Edit the most recent match of a player. Draws are only required if greater than 0.
+        </p>
+        <p>
+            <code>!quit @player</code>
+            Remove another player from the tournament. If the tournament has started, they will be dropped.
         </p>
       </div>
     </div>
