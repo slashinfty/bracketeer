@@ -156,7 +156,6 @@ client.once('ready', () => {
 
 // Interpreting messages
 client.on('message', async message => {
-    console.log('Channel Manager:\n' + message.guild.channels);
     // Ignore bots and anything that doesn't start with !
     if (message.author.bot || !message.content.startsWith('!')) return;
 
@@ -450,7 +449,6 @@ client.on('message', async message => {
 
 // If a user leaves the server, remove them from the tournament
 client.on('guildMemberRemove', member => {
-    // Find the active tournament, or return if it doesn't exist
     const tournament = EventManager.tournaments.find(t => t.eventID === message.channel.id);
     if (tournament === undefined) return;
     const player = tournament.players.find(p => p.id === member.id);
@@ -475,8 +473,18 @@ client.on('channelDelete', channel => {
     ref.child(tournament.eventID).set(null);
 });
 
+// If the bot is removed from a server, delete any tournaments being ran
 client.on('guildDelete', guild => {
-
+    const tournamentIDs = EventManager.tournaments.map(t => t.eventID);
+    const ref = db.ref('tournaments');
+    if (guild.channels.guild.channels.some(x => tournamentIDs.includes(x))) {
+        const oldTournaments = guild.channels.guild.channels.filter(x => tournamentIDs.includes(x));
+        oldTournaments.forEach(t => {
+            const tournament = EventManager.tournaments.find(tour => tour.eventID === t);
+            EventManager.removeTournament(tournament);
+            ref.child(tournament.eventID).set(null);
+        });
+    }
 });
 
 // Save tournaments every minute
