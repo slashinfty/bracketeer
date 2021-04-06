@@ -156,6 +156,7 @@ client.once('ready', () => {
 
 // Interpreting messages
 client.on('message', async message => {
+    console.log(message.content);
     // Ignore bots and anything that doesn't start with !
     if (message.author.bot || !message.content.startsWith('!')) return;
 
@@ -342,6 +343,7 @@ client.on('message', async message => {
     }
 
     // Join a tournament with !join or !J
+    // regex: /^!(j(?=\s|$)|join)(\s\w*)?/i
     if (message.content.startsWith('!join') || message.content.startsWith('!J')) {
         let seed = null;
         if (tournament.hasOwnProperty('chess')) {
@@ -370,6 +372,7 @@ client.on('message', async message => {
     }
 
     // Get your current match with !pairing or !P
+    // regex: /^!(p|pairing)$/i
     if (message.content.startsWith('!pairing') || message.content.startsWith('!P')) {
         const active = tournament.activeMatches();
         const match = active.find(m => m.playerOne.id === message.author.id || m.playerTwo.id === message.author.id);
@@ -378,6 +381,7 @@ client.on('message', async message => {
     }
 
     // Get pairings and standings with !info or !status
+    // regex: /^!(info|status)$/i
     if (message.content.startsWith('!info') || message.content.startsWith('!status')) {
         info(tournament);
         message.reply('You can view current pairings and standings at https://slashinfty.github.io/bracketeer/viewer?data=' + tournament.eventID);
