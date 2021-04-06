@@ -390,7 +390,7 @@ client.on('message', async message => {
 
     // Report results with !results or !report or !R
     if (/^!(r(?=\s)|result|report)\s\d+-\d+(-\d+)?(\s<@!\d+>)?/i.test(message.content)) {
-        const result = message.content.match(/(?<=[!R|!result|!report]\s)\d+-\d+(-\d+)?/);
+        const result = message.content.match(/(?<=[!r(?=\s)|!result|!report]\s)\d+-\d+(-\d+)?/i);
         const games = result[0].split('-').map(g => parseInt(g));
         if (games.length === 2) games.push(0);
         let match;
@@ -424,7 +424,7 @@ client.on('message', async message => {
     }
 
     // Quit the tournament with !quit or !Q
-    if (/^!(q|quit)$/i.test(message.content)) {
+    if (/^!(q|quit)(\s<@\d+>)?/i.test(message.content)) {
         let player;
         if (message.member.hasPermission("ADMINISTRATOR") && message.mentions.users.size === 1) player = tournament.players.find(p => p.id === message.mentions.users.first().id);
         else player = tournament.players.find(p => p.id === message.author.id);
