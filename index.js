@@ -340,7 +340,7 @@ client.on('message', async message => {
             message.channel.send('The tournament is now over.', attachment);
             EventManager.removeTournament(tournament);
             const ref = db.ref('tournaments');
-            ref.child(t.eventID).set(null);
+            ref.child(tournament.eventID).set(null);
         }
 
     }
@@ -430,10 +430,29 @@ client.on('message', async message => {
         else player = tournament.players.find(p => p.id === message.author.id);
         if (player === undefined) message.react('❌');
         const remove = tournament.removePlayer(player);
-        if (remove) message.react('✅');
+        if (remove) message.react('✅'); //TODO
         else message.react('❌');
     }
 
+});
+
+// If a user leaves the server, remove them from the tournament
+client.on('guildMemberRemove', member => {
+    // Find the active tournament, or return if it doesn't exist
+    const tournament = EventManager.tournaments.find(t => t.eventID === message.channel.id);
+    if (tournament === undefined) return;
+    const player = tournament.players.find(p => p.id === member.id);
+    if (player === undefined) return;
+    const remove = tournament.removePlayer(player);
+    //TODO
+});
+
+client.on('channelDelete', channel => {
+    const tournament = EventManager.tournaments.find(t => t.eventId === channel.id);
+    if (tournament === undefined) return;
+    EventManager.removeTournament(tournament);
+    const ref = db.ref('tournaments');
+    ref.child(tournament.eventID).set(null);
 });
 
 // Save tournaments every minute
