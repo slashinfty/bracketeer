@@ -318,7 +318,7 @@ client.on('message', async message => {
                 return;
             }
             tournament.startEvent();
-            const update = info(tournament);
+            info(tournament);
             message.channel.send('Your tournament has started! View pairings at https://slashinfty.github.io/bracketeer/viewer?data=' + tournament.eventID);
             return;
         }
@@ -400,7 +400,8 @@ client.on('message', async message => {
             match = tournament.matches.find(m => m.id === reportingPlayer.results[reportingPlayer.results.length - 1]);
         } else {
             reportingPlayer = tournament.players.find(p => p.id === message.author.id);
-            match = tournament.activeMatches().find(m => m.playerOne === reportingPlayer || m.playerTwo === reportingPlayer);
+            const active = tournament.activeMatches();
+            match = active.find(m => m.playerOne === reportingPlayer || m.playerTwo === reportingPlayer);
         }
         if (reportingPlayer === undefined || match === undefined) {
             message.react('❌');
@@ -414,6 +415,7 @@ client.on('message', async message => {
             return;
         }
         message.react('✅');
+        info(tournament);
         if (newMatches > 0) {
             let msg = 'There are new matches!\n';
             newMatches.forEach(nm => msg += '\nRound ' + nm.round + ' Match ' + nm.matchNumber + ' - ' + nm.playerOne.alias + ' vs ' + nm.playerTwo.alias);

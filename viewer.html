@@ -76,39 +76,34 @@
             // Get initial data
             var data;
             database.ref('tournaments').get().then(snapshot => {
-                console.log('snapshot.val() = ' + snapshot.val());
                 data = snapshot.val();
-            });
-            console.log('data = ' + data);
+                // Fill dropdown with tournaments
+                const select = document.getElementById('tournament');
+                for (const prop in data) {
+                    const opt = document.createElement('option');
+                    opt.value = prop;
+                    opt.text = data[prop].name;
+                    select.add(opt);
+                }
 
-            // Fill dropdown with tournaments
-            const select = document.getElementById('tournament');
-            for (const prop in data) {
-                const opt = document.createElement('option');
-                console.log('prop = ' + prop);
-                opt.value = prop;
-                console.log('data[prop].name = ' + data[prop].name);
-                opt.text = data[prop].name;
-                select.add(opt);
-            }
-
-            // Load table if search params present
-            let url = new URL(window.location.href);
-            let tableData;
-            if (url.searchParams.has('data')) tableData = data[url.searchParams.get('data')];
-            var pairingsTable = $('#pairings').DataTable({
-                data: tableData !== undefined ? tableData.pairings : {},
-                scrollY: '290px',
-                scrollCollapse: true,
-                paging: false,
-                columns: tableData !== undefined ? tableData.columns.pairings : {}
-            });
-            var standingsTable = $('#standings').DataTable({
-                data: tableData !== undefined ? tableData.standings : {},
-                scrollY: '290px',
-                scrollCollapse: true,
-                paging: false,
-                columns: tableData !== undefined ? tableData.columns.standings : {}
+                // Load table if search params present
+                let url = new URL(window.location.href);
+                let tableData;
+                if (url.searchParams.has('data')) tableData = data[url.searchParams.get('data')];
+                var pairingsTable = $('#pairings').DataTable({
+                    data: tableData !== undefined ? tableData.pairings : {},
+                    scrollY: '290px',
+                    scrollCollapse: true,
+                    paging: false,
+                    columns: tableData !== undefined ? tableData.columns.pairings : {}
+                });
+                var standingsTable = $('#standings').DataTable({
+                    data: tableData !== undefined ? tableData.standings : {},
+                    scrollY: '290px',
+                    scrollCollapse: true,
+                    paging: false,
+                    columns: tableData !== undefined ? tableData.columns.standings : {}
+                });
             });
 
             // Redraw tables when values updated
