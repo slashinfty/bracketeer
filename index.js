@@ -336,7 +336,7 @@ client.on('message', async message => {
             message.channel.send('The tournament is now over.', attachment);
             EventManager.removeTournament(tournament);
             const ref = db.ref('tournaments');
-            ref.child(tournament.eventID).removeValue();
+            ref.child(t.eventID).set(null);
         }
 
     }
