@@ -1,3 +1,9 @@
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 const fs = require('fs');
 const path = require('path');
 const fetch = require('node-fetch');
@@ -181,11 +187,14 @@ client.once('ready', () => {
     // Recover saved information
     const file = path.join(__dirname + '/static/save.json');
     if (!fs.existsSync(file)) {
+	console.log('file does not exist');
         const empty = [];
         fs.writeFileSync(file, JSON.stringify(empty));
     };
     const contents = fs.readFileSync(file);
+    console.log(contents);
     EventManager.tournaments = JSON.parse(contents);
+    console.log(EventManager.tournaments);
 });
 
 // Interpreting messages

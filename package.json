@@ -21,7 +21,16 @@
     "url": "https://github.com/slashinfty/bracketeer/issues"
   },
   "homepage": "https://github.com/slashinfty/bracketeer#readme",
+  "babel": {
+    "presets": [
+      "stage-3",
+      "latest"
+    ]
+  },
+  "type": "module",
   "dependencies": {
+    "babel-preset-latest": "^6.24.1",
+    "babel-preset-stage-3": "^6.24.1",
     "discord.js": "^12.5.1",
     "dotenv": "^8.2.0",
     "firebase-admin": "^9.6.0",
