@@ -4,6 +4,7 @@ const fetch = require('node-fetch');
 const admin = require('firebase-admin');
 const Discord = require('discord.js');
 const TournamentOrganizer = require('tournament-organizer');
+import {markdownTable} from 'markdown-table';
 
 // Load token
 require('dotenv').config({ path: path.resolve(__dirname, './.env') });
@@ -27,6 +28,15 @@ client.login(process.env.DISCORD_TOKEN);
 
 // Save tournaments function
 const save = () => fs.writeFileSync(path.join(__dirname + '/static/save.json'), JSON.stringify(EventManager.tournaments));
+
+// Table-fy new matches
+const matchTable = arr => {
+    const mdArray = [
+        ['Match', 'Player 1', 'Player 2']
+    ];
+    arr.forEach(a => mdArray.push(['R' + a.round + 'M' + a.matchNumber, a.playerOne.alias, a.playerTwo.alias]));
+    return(markdownTable(mdArray, {align: ['c', 'l', 'l']}));
+}
 
 // Set info and share link
 const info = t => {
@@ -61,28 +71,41 @@ const info = t => {
             result: m.draws === 0 ? m.playerOneWins + '-' + m.playerTwoWins : m.playerOneWins + '-' + m.playerTwoWins + '-' + m.draws
         });
     });
+    const mdArray = [
+        ['Rank', 'Player', 'Points']
+    ];
+    const alignArray = ['c', 'l', 'c'];
     const standings = t.standings(false);
     t.tiebreakers.forEach(b => {
+        const a = mdArray[0];
+        if (b !== 'match-points') alignArray.push('c');
         switch (b) {
             case 'buchholz-cut1':
+                a.push('Buchholz Cut 1');
                 object.columns.standings.push({title: 'Buchholz Cut 1', data: 'cutOne'});
                 break;
             case 'solkoff':
+                a.push('Solkoff');
                 object.columns.standings.push({title: 'Solkoff', data: 'solkoff'});
                 break;
             case 'median-buchholz':
+                a.push('Median-Buchholz');
                 object.columns.standings.push({title: 'Median-Buchholz', data: 'median'});
                 break;
             case 'sonneborn-berger':
+                a.push('Sonneborn-Berger');
                 object.columns.standings.push({title: 'Sonneborn-Berger', data: 'neustadtl'});
                 break;
             case 'cumulative':
+                a.push('Cumulative', 'Opp Cumulative');
                 object.columns.standings.push({title: 'Cumulative', data: 'cumulative'}, {title: 'Opp Cumulative', data: 'oppCumulative'});
                 break;
             case 'magic-tcg':
+                a.push('Opp Match Win%', 'Game Win%', 'Opp Game Win%');
                 object.columns.standings.push({title: 'Opp Match Win%', data: 'oppMatchWinPctM'}, {title: 'Game Win%', data: 'gameWinPct'}, {title: 'Opp Game Win%', data: 'oppGameWinPct'});
                 break;
             case 'pokemon-tcg':
+                a.push('Opp Match Win%', 'Opp Opp Match Win%');
                 object.columns.standings.push({title: 'Opp Match Win%', data: 'oppMatchWinPctP'}, {title: 'Opp Opp Match Win%', data: 'oppOppMatchWinPct'});
                 break;
             default:
@@ -95,30 +118,38 @@ const info = t => {
             player: t.hasOwnProperty('chess') ? s.alias + ' (' + s.seed + ')' : s.alias,
             matchPoints: s.matchPoints
         };
+        const a = [i + 1, s.alias, s.matchPoints];
         t.tiebreakers.forEach(b => {
             switch (b) {
                 case 'buchholz-cut1':
+                    a.push(s.tiebreakers.cutOne);
                     obj['cutOne'] = s.tiebreakers.cutOne;
                     break;
                 case 'solkoff':
+                    a.push(s.tiebreakers.solkoff);
                     obj['solkoff'] = s.tiebreakers.solkoff;
                     break;
                 case 'median-buchholz':
+                    a.push(s.tiebreakers.median);
                     obj['median'] = s.tiebreakers.median;
                     break;
                 case 'sonneborn-berger':
+                    a.push(s.tiebreakers.neustadtl);
                     obj['neustadtl'] = s.tiebreakers.neustadtl;
                     break;
                 case 'cumulative':
+                    a.push(s.tiebreakers.cumulative, s.tiebreakers.oppCumulative);
                     obj['cumulative'] = s.tiebreakers.cumulative;
                     obj['oppCumulative'] = s.tiebreakers.oppCumulative;
                     break;
                 case 'magic-tcg':
+                    a.push(s.tiebreakers.oppMatchWinPctM, s.tiebreakers.gameWinPct, s.tiebreakers.oppGameWinPct);
                     obj['oppMatchWinPctM'] = s.tiebreakers.oppMatchWinPctM;
                     obj['gameWinPct'] = s.tiebreakers.gameWinPct;
                     obj['oppGameWinPct'] = s.tiebreakers.oppGameWinPct;
                     break;
                 case 'pokemon-tcg':
+                    a.push(s.tiebreakers.oppMatchWinPctP, s.tiebreakers.oppOppMatchWinPct);
                     obj['oppMatchWinPctP'] = s.tiebreakers.oppMatchWinPctP;
                     obj['oppOppMatchWinPct'] = s.tiebreakers.oppOppMatchWinPct;
                     break;
@@ -127,9 +158,11 @@ const info = t => {
             }
         });
         object.standings.push(obj);
+        mdArray.push(a);
     });
     const ref = db.ref('tournaments');
     ref.child(t.eventID).set(object);
+    return markdownTable(mdArray, {align: alignArray});
 }
 
 // Bot is on
@@ -161,7 +194,7 @@ client.on('message', async message => {
     if (message.author.bot || !message.content.startsWith('!')) return;
 
     // Get help with !bracketeer
-    if (/^!bracketeer$/i.test(message.content)) {
+    if (/^!(bracketeer|help)$/i.test(message.content)) {
         message.reply('If you need help, please check out https://slashinfty.github.io/bracketeer/');
         return;
     }
@@ -338,7 +371,7 @@ client.on('message', async message => {
             tournament.active = false;
             const buffer = Buffer.from(JSON.stringify(tournament));
             const attachment = new Discord.MessageAttachment(buffer, tournament.name + '.json');
-            message.channel.send('The tournament is now over.', attachment);
+            message.channel.send('The tournament is now over.\n```\n' + info(tournament) + '\n```', attachment);
             EventManager.removeTournament(tournament);
             const ref = db.ref('tournaments');
             ref.child(tournament.eventID).set(null);
@@ -411,7 +444,6 @@ client.on('message', async message => {
         let newMatches = [];
         if (match.playerOne === reportingPlayer) newMatches = tournament.result(match, games[0], games[1], games[2]);
         else newMatches = tournament.result(match, games[1], games[0], games[2]);
-        console.log(newMatches);//TESTING
         if (newMatches === null) {
             message.react('❌');
             return;
@@ -419,15 +451,13 @@ client.on('message', async message => {
         message.react('✅');
         info(tournament);
         if (newMatches.length > 0) {
-            let msg = 'There are new matches!\n';
-            newMatches.forEach(nm => msg += '\nRound ' + nm.round + ' Match ' + nm.matchNumber + ' - ' + nm.playerOne.alias + ' vs ' + nm.playerTwo.alias);
-            msg += '\n\nYou can view current pairings and standings at https://slashinfty.github.io/bracketeer/viewer?data=' + tournament.eventID;
+            let msg = '```\n' + matchTable(newMatches) + '\n```';
             message.channel.send(msg);
         }
         if (!tournament.active) {
             const buffer = Buffer.from(JSON.stringify(tournament));
             const attachment = new Discord.MessageAttachment(buffer, tournament.name + '.json');
-            message.channel.send('The tournament is now over.', attachment);
+            message.channel.send('The tournament is now over.\n```\n' + info(tournament) + '\n```', attachment);
             EventManager.removeTournament(tournament);
             const ref = db.ref('tournaments');
             ref.child(tournament.eventID).set(null);
@@ -448,9 +478,7 @@ client.on('message', async message => {
         } else message.react('✅');
         info(tournament);
         if (typeof newMatches === object && newMatches.length > 0) {
-            let msg = 'There are new matches!\n';
-            newMatches.forEach(nm => msg += '\nRound ' + nm.round + ' Match ' + nm.matchNumber + ' - ' + nm.playerOne.alias + ' vs ' + nm.playerTwo.alias);
-            msg += '\n\nYou can view current pairings and standings at https://slashinfty.github.io/bracketeer/viewer?data=' + tournament.eventID;
+            let msg = '```\n' + matchTable(newMatches) + '\n```';
             message.channel.send(msg);
         }
     }
@@ -467,9 +495,7 @@ client.on('guildMemberRemove', member => {
     if (newMatches === false) return;
     info(tournament);
     if (typeof newMatches === object && newMatches.length > 0) {
-        let msg = 'There are new matches!\n';
-        newMatches.forEach(nm => msg += '\nRound ' + nm.round + ' Match ' + nm.matchNumber + ' - ' + nm.playerOne.alias + ' vs ' + nm.playerTwo.alias);
-        msg += '\n\nYou can view current pairings and standings at https://slashinfty.github.io/bracketeer/viewer?data=' + tournament.eventID;
+        let msg = '```\n' + matchTable(newMatches) + '\n```';
         message.channel.send(msg);
     }
 });

@@ -78,7 +78,6 @@
             const select = document.getElementById('tournament');
             database.ref('tournaments').get().then(snapshot => {
                 data = snapshot.val();
-                console.log(JSON.stringify(data));
                 // Fill dropdown with tournaments
                 for (const prop in data) {
                     const opt = document.createElement('option');
@@ -109,6 +108,12 @@
                 var ref = database.ref('tournaments/' + select.value);
                 ref.on('value', snapshot => {
                     const update = snapshot.val();
+                    if (update === null) {
+                        alert('The tournament is now over.');
+                        pairingsTable.clear().draw();
+                        standingsTable.clear().draw();
+                        return;
+                    }
                     pairingsTable.clear().rows.add(update.pairings).draw();
                     standingsTable.clear().rows.add(update.standings).draw();
                 });
