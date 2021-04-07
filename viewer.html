@@ -108,9 +108,9 @@
                 // Redraw tables when values updated
                 var ref = database.ref('tournaments/' + select.value);
                 ref.on('value', snapshot => {
-                    data = snapshot.val();
-                    pairingsTable.draw();
-                    standingsTable.draw();
+                    const update = snapshot.val();
+                    pairingsTable.clear().rows.add(update.pairings).draw();
+                    standingsTable.clear().rows.add(update.standings).draw();
                 });
             });
         });

@@ -18,12 +18,12 @@ const app = admin.initializeApp({
 // Get database
 const db = app.database();
 
+// Start Tournament Organizer
+const EventManager = new TournamentOrganizer.EventManager();
+
 // Start Discord
 const client = new Discord.Client();
 client.login(process.env.DISCORD_TOKEN);
-
-// Start Tournament Organizer
-const EventManager = new TournamentOrganizer.EventManager();
 
 // Save tournaments function
 const save = () => fs.writeFileSync(path.join(__dirname + '/static/save.json'), JSON.stringify(EventManager.tournaments));
@@ -153,7 +153,6 @@ client.once('ready', () => {
     };
     const contents = fs.readFileSync(file);
     EventManager.tournaments = JSON.parse(contents);
-    console.table(EventManager.tournaments);//TESTING
 });
 
 // Interpreting messages
@@ -419,7 +418,7 @@ client.on('message', async message => {
         }
         message.react('✅');
         info(tournament);
-        if (newMatches > 0) {
+        if (newMatches.length > 0) {
             let msg = 'There are new matches!\n';
             newMatches.forEach(nm => msg += '\nRound ' + nm.round + ' Match ' + nm.matchNumber + ' - ' + nm.playerOne.alias + ' vs ' + nm.playerTwo.alias);
             msg += '\n\nYou can view current pairings and standings at https://slashinfty.github.io/bracketeer/viewer?data=' + tournament.eventID;
@@ -448,7 +447,7 @@ client.on('message', async message => {
             return;
         } else message.react('✅');
         info(tournament);
-        if (typeof newMatches === object && newMatches > 0) {
+        if (typeof newMatches === object && newMatches.length > 0) {
             let msg = 'There are new matches!\n';
             newMatches.forEach(nm => msg += '\nRound ' + nm.round + ' Match ' + nm.matchNumber + ' - ' + nm.playerOne.alias + ' vs ' + nm.playerTwo.alias);
             msg += '\n\nYou can view current pairings and standings at https://slashinfty.github.io/bracketeer/viewer?data=' + tournament.eventID;
@@ -467,7 +466,7 @@ client.on('guildMemberRemove', member => {
     const newMatches = tournament.removePlayer(player);
     if (newMatches === false) return;
     info(tournament);
-    if (typeof newMatches === object && newMatches > 0) {
+    if (typeof newMatches === object && newMatches.length > 0) {
         let msg = 'There are new matches!\n';
         newMatches.forEach(nm => msg += '\nRound ' + nm.round + ' Match ' + nm.matchNumber + ' - ' + nm.playerOne.alias + ' vs ' + nm.playerTwo.alias);
         msg += '\n\nYou can view current pairings and standings at https://slashinfty.github.io/bracketeer/viewer?data=' + tournament.eventID;
