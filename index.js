@@ -345,7 +345,7 @@ client.on('message', async message => {
             tournament.waiting = false;
             tournament.startEvent();
             info(tournament);
-            message.channel.send('Your tournament has started! View real-time pairings and standings at https://slashinfty.github.io/bracketeer/viewer?data=' + tournament.eventID + '\n```\n' + markdownTable(tournament.activeMatches() + '\n```'));
+            message.channel.send('Your tournament has started! View real-time pairings and standings at https://slashinfty.github.io/bracketeer/viewer?data=' + tournament.eventID + '\n```\n' + markdownTable(tournament.activeMatches()) + '\n```');
             const number = EventManager.tournaments.reduce((acc, cur) => acc += cur.active, 0);
             const word = number === 1 ? 'is currently ' + number + ' tournament' : 'are currently ' + number + ' tournaments';
             console.log('Tournament started! There ' + word + ' running.');
@@ -369,7 +369,7 @@ client.on('message', async message => {
             }
             tournament.startEvent();
             info(tournament);
-            message.channel.send('Your tournament has started! View real-time pairings and standings at https://slashinfty.github.io/bracketeer/viewer?data=' + tournament.eventID + '\n```\n' + markdownTable(tournament.activeMatches() + '\n```'));
+            message.channel.send('Your tournament has started! View real-time pairings and standings at https://slashinfty.github.io/bracketeer/viewer?data=' + tournament.eventID + '\n```\n' + markdownTable(tournament.activeMatches()) + '\n```');
             const number = EventManager.tournaments.reduce((acc, cur) => acc += cur.active, 0);
             const word = number === 1 ? 'is currently ' + number + ' tournament' : 'are currently ' + number + ' tournaments';
             console.log('Tournament started! There ' + word + ' running.');
@@ -569,6 +569,15 @@ client.on('guildDelete', guild => {
             ref.child(tournament.eventID).set(null);
         });
     }
+    const number = client.guilds.array().length;
+    const word = number === 1 ? ' server.' : ' servers.';
+    console.log('Bracketeer left a server. Now in ' + number + word);
+});
+
+client.on('guideCreate', guild => {
+    const number = client.guilds.array().length;
+    const word = number === 1 ? ' server.' : ' servers.';
+    console.log('Bracketeer joined a server. Now in ' + number + word);
 });
 
 // Save tournaments every minute
