@@ -25,8 +25,8 @@ const app = admin.initializeApp({
 // Get database
 const db = app.database();
 
-// Start Tournament Organizer
-const EventManager = new TournamentOrganizer.EventManager();
+// Prepare Tournament Organizer
+var EventManager;
 
 // Start Discord
 const client = new Discord.Client();
@@ -192,9 +192,8 @@ client.once('ready', () => {
         fs.writeFileSync(file, JSON.stringify(empty));
     };
     const contents = fs.readFileSync(file);
-    console.log(contents);
+    EventManager = new TournamentOrganizer.EventManager();
     EventManager.tournaments = JSON.parse(contents);
-    console.log(EventManager.tournaments);
 });
 
 // Interpreting messages
@@ -320,6 +319,9 @@ client.on('message', async message => {
         }
 
         message.channel.send({ embed: embed });
+        const number = EventManager.tournaments.length;
+        const word = number === 1 ? 'is currently ' + number + ' tournament' : 'are currently ' + number + ' tournaments';
+            console.log('Tournament created! There ' + word + '.');
     }
 
     // Find the active tournament, or return if it doesn't exist
@@ -330,6 +332,7 @@ client.on('message', async message => {
     if (message.member.hasPermission('ADMINISTRATOR')) {
         // Upload a file with !upload
         if (/^!upload$/i.test(message.content) && message.attachments.size !== 0 && tournament.hasOwnProperty('waiting') && tournament.waiting) {
+            if (tournament.players.length < 2) return;
             let object;
             try {
                 let response = await fetch(message.attachments.first().url);
@@ -342,12 +345,16 @@ client.on('message', async message => {
             tournament.waiting = false;
             tournament.startEvent();
             info(tournament);
-            message.channel.send('Your tournament has started! View pairings at https://slashinfty.github.io/bracketeer/viewer?data=' + tournament.eventID);
+            message.channel.send('Your tournament has started! View real-time pairings and standings at https://slashinfty.github.io/bracketeer/viewer?data=' + tournament.eventID + '\n```\n' + markdownTable(tournament.activeMatches() + '\n```'));
+            const number = EventManager.tournaments.reduce((acc, cur) => acc += cur.active, 0);
+            const word = number === 1 ? 'is currently ' + number + ' tournament' : 'are currently ' + number + ' tournaments';
+            console.log('Tournament started! There ' + word + ' running.');
             return;
         }
 
         // Start the tournament with !start
         if (/^!start$/i.test(message.content)) {
+            if (tournament.players.length < 2) return;
             if (tournament.seededPlayers && !tournament.hasOwnProperty('chess')) {
                 tournament.waiting = true;
                 const content = tournament.players.map(p => ({
@@ -362,7 +369,10 @@ client.on('message', async message => {
             }
             tournament.startEvent();
             info(tournament);
-            message.channel.send('Your tournament has started! View pairings at https://slashinfty.github.io/bracketeer/viewer?data=' + tournament.eventID);
+            message.channel.send('Your tournament has started! View real-time pairings and standings at https://slashinfty.github.io/bracketeer/viewer?data=' + tournament.eventID + '\n```\n' + markdownTable(tournament.activeMatches() + '\n```'));
+            const number = EventManager.tournaments.reduce((acc, cur) => acc += cur.active, 0);
+            const word = number === 1 ? 'is currently ' + number + ' tournament' : 'are currently ' + number + ' tournaments';
+            console.log('Tournament started! There ' + word + ' running.');
             return;
         }
 
@@ -380,10 +390,18 @@ client.on('message', async message => {
             tournament.active = false;
             const buffer = Buffer.from(JSON.stringify(tournament));
             const attachment = new Discord.MessageAttachment(buffer, tournament.name + '.json');
-            message.channel.send('The tournament is now over.\n```\n' + info(tournament) + '\n```', attachment);
+            try {
+                message.channel.send('The tournament is now over.\n```\n' + info(tournament) + '\n```', attachment);
+            } catch (err) {
+                message.channel.send('The tournament is now over.');
+                console.error(err);
+            }
             EventManager.removeTournament(tournament);
             const ref = db.ref('tournaments');
             ref.child(tournament.eventID).set(null);
+            const number = EventManager.tournaments.reduce((acc, cur) => acc += cur.active, 0);
+            const word = number === 1 ? 'is currently ' + number + ' tournament' : 'are currently ' + number + ' tournaments';
+            console.log('Tournament ended! There ' + word + ' running.');
         }
 
     }
@@ -427,7 +445,7 @@ client.on('message', async message => {
     // Get pairings and standings with !info or !status
     if (/^!(info|status)$/i.test(message.content)) {
         info(tournament);
-        message.reply('You can view current pairings and standings at https://slashinfty.github.io/bracketeer/viewer?data=' + tournament.eventID);
+        message.reply('You can view real-time pairings and standings at https://slashinfty.github.io/bracketeer/viewer?data=' + tournament.eventID);
         return;
     }
 
@@ -440,7 +458,13 @@ client.on('message', async message => {
         let reportingPlayer;
         if (message.member.hasPermission("ADMINISTRATOR") && message.mentions.users.size === 1) {
             reportingPlayer = tournament.players.find(p => p.id === message.mentions.users.first().id);
-            match = tournament.matches.find(m => m.id === reportingPlayer.results[reportingPlayer.results.length - 1]);
+            match = tournament.matches.find(m => m.id === reportingPlayer.results[reportingPlayer.results.length - 1].match);
+            if (games[0] === 0 && games[1] === 0) {
+                tournament.undoResults(match);
+                message.react('✅');
+                info(tournament);
+                return;
+            }
         } else {
             reportingPlayer = tournament.players.find(p => p.id === message.author.id);
             const active = tournament.activeMatches();
@@ -460,8 +484,13 @@ client.on('message', async message => {
         message.react('✅');
         info(tournament);
         if (newMatches.length > 0) {
-            let msg = '```\n' + matchTable(newMatches) + '\n```';
-            message.channel.send(msg);
+            let msg = 'There are new matches!\n```\n' + matchTable(newMatches) + '\n```';
+            try {
+                message.channel.send(msg);
+            } catch (err) {
+                message.channel.send('There are new matches!')
+                console.log(err);
+            }
         }
         if (!tournament.active) {
             const buffer = Buffer.from(JSON.stringify(tournament));
@@ -487,8 +516,13 @@ client.on('message', async message => {
         } else message.react('✅');
         info(tournament);
         if (typeof newMatches === object && newMatches.length > 0) {
-            let msg = '```\n' + matchTable(newMatches) + '\n```';
-            message.channel.send(msg);
+            let msg = 'There are new matches!\n```\n' + matchTable(newMatches) + '\n```';
+            try {
+                message.channel.send(msg);
+            } catch (err) {
+                message.channel.send('There are new matches!')
+                console.log(err);
+            }
         }
     }
 
@@ -504,8 +538,13 @@ client.on('guildMemberRemove', member => {
     if (newMatches === false) return;
     info(tournament);
     if (typeof newMatches === object && newMatches.length > 0) {
-        let msg = '```\n' + matchTable(newMatches) + '\n```';
-        message.channel.send(msg);
+        let msg = 'There are new matches!\n```\n' + matchTable(newMatches) + '\n```';
+        try {
+            message.channel.send(msg);
+        } catch (err) {
+            message.channel.send('There are new matches!')
+            console.log(err);
+        }
     }
 });
 
