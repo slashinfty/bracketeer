@@ -224,7 +224,7 @@ client.on('message', async message => {
         let options = {};
         if (submission.find(x => x.includes('name')) !== undefined) {
             options.name = submission.find(x => x.includes('name')).match(/(?<=\=)[\w-]+/)[0];
-            submission.splice(submission.findIndex(x => x.includes('name').match(/(?<=\=)[\w-]+/)[0]), 1);
+            submission.splice(submission.findIndex(x => 'name=' + options.name), 1);
         }
         const format = submission.find(x => x.includes('format')).match(/(?<=\=)[\w-]+/)[0];
         if (format.includes('elim')) {
