@@ -222,6 +222,10 @@ client.on('message', async message => {
         let submission = message.content.split(' ');
         submission.shift();
         let options = {};
+        if (submission.find(x => x.includes('name')) !== undefined) {
+            options.name = submission.find(x => x.includes('name')).match(/(?<=\=)[\w-]+/)[0];
+            submission.splice(submission.indexOf(submission.find(x => x.includes('name')).match(/(?<=\=)[\w-]+/)[0]), 1);
+        }
         const format = submission.find(x => x.includes('format')).match(/(?<=\=)[\w-]+/)[0];
         if (format.includes('elim')) {
             options.format = 'elim';
@@ -233,7 +237,6 @@ client.on('message', async message => {
             options.format = 'swiss';
             if (format === 'dutch') options.dutch = true;
         }
-        if (submission.find(x => x.includes('name')) !== undefined) options.name = submission.find(x => x.includes('name')).match(/(?<=\=)[\w-]+/)[0];
         if (submission.find(x => x.includes('playoffs')) !== undefined) options.playoffs = submission.find(x => x.includes('playoffs')).match(/(?<=\=)[\w-]+/)[0];
         if (submission.find(x => x.includes('win')) !== undefined) options.winValue = Number(submission.find(x => x.includes('win')).match(/(?<=\=)[\w-]+/)[0]);
         if (submission.find(x => x.includes('draw')) !== undefined) options.drawvalue = Number(submission.find(x => x.includes('draw')).match(/(?<=\=)[\w-]+/)[0]);
