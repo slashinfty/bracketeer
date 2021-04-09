@@ -83,35 +83,27 @@ const info = t => {
     const alignArray = ['c', 'l', 'c'];
     const standings = t.standings(false);
     t.tiebreakers.forEach(b => {
-        const a = mdArray[0];
         if (b !== 'match-points') alignArray.push('c');
         switch (b) {
             case 'buchholz-cut1':
-                a.push('Buchholz Cut 1');
                 object.columns.standings.push({title: 'Buchholz Cut 1', data: 'cutOne'});
                 break;
             case 'solkoff':
-                a.push('Solkoff');
                 object.columns.standings.push({title: 'Solkoff', data: 'solkoff'});
                 break;
             case 'median-buchholz':
-                a.push('Median-Buchholz');
                 object.columns.standings.push({title: 'Median-Buchholz', data: 'median'});
                 break;
             case 'sonneborn-berger':
-                a.push('Sonneborn-Berger');
                 object.columns.standings.push({title: 'Sonneborn-Berger', data: 'neustadtl'});
                 break;
             case 'cumulative':
-                a.push('Cumulative', 'Opp Cumulative');
                 object.columns.standings.push({title: 'Cumulative', data: 'cumulative'}, {title: 'Opp Cumulative', data: 'oppCumulative'});
                 break;
             case 'magic-tcg':
-                a.push('Opp Match Win%', 'Game Win%', 'Opp Game Win%');
                 object.columns.standings.push({title: 'Opp Match Win%', data: 'oppMatchWinPctM'}, {title: 'Game Win%', data: 'gameWinPct'}, {title: 'Opp Game Win%', data: 'oppGameWinPct'});
                 break;
             case 'pokemon-tcg':
-                a.push('Opp Match Win%', 'Opp Opp Match Win%');
                 object.columns.standings.push({title: 'Opp Match Win%', data: 'oppMatchWinPctP'}, {title: 'Opp Opp Match Win%', data: 'oppOppMatchWinPct'});
                 break;
             default:
@@ -128,34 +120,27 @@ const info = t => {
         t.tiebreakers.forEach(b => {
             switch (b) {
                 case 'buchholz-cut1':
-                    a.push(s.tiebreakers.cutOne);
                     obj['cutOne'] = s.tiebreakers.cutOne;
                     break;
                 case 'solkoff':
-                    a.push(s.tiebreakers.solkoff);
                     obj['solkoff'] = s.tiebreakers.solkoff;
                     break;
                 case 'median-buchholz':
-                    a.push(s.tiebreakers.median);
                     obj['median'] = s.tiebreakers.median;
                     break;
                 case 'sonneborn-berger':
-                    a.push(s.tiebreakers.neustadtl);
                     obj['neustadtl'] = s.tiebreakers.neustadtl;
                     break;
                 case 'cumulative':
-                    a.push(s.tiebreakers.cumulative, s.tiebreakers.oppCumulative);
                     obj['cumulative'] = s.tiebreakers.cumulative;
                     obj['oppCumulative'] = s.tiebreakers.oppCumulative;
                     break;
                 case 'magic-tcg':
-                    a.push(s.tiebreakers.oppMatchWinPctM, s.tiebreakers.gameWinPct, s.tiebreakers.oppGameWinPct);
                     obj['oppMatchWinPctM'] = s.tiebreakers.oppMatchWinPctM;
                     obj['gameWinPct'] = s.tiebreakers.gameWinPct;
                     obj['oppGameWinPct'] = s.tiebreakers.oppGameWinPct;
                     break;
                 case 'pokemon-tcg':
-                    a.push(s.tiebreakers.oppMatchWinPctP, s.tiebreakers.oppOppMatchWinPct);
                     obj['oppMatchWinPctP'] = s.tiebreakers.oppMatchWinPctP;
                     obj['oppOppMatchWinPct'] = s.tiebreakers.oppOppMatchWinPct;
                     break;
