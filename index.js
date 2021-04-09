@@ -253,10 +253,10 @@ client.on('message', async message => {
         if (submission.find(x => x.includes('tiebreakers')) !== undefined) options.tiebreakers = submission.find(x => x.includes('tiebreakers')).match(/(?<=\=)[\w-,]+/)[0].split(',');
 
         const tournament = EventManager.createTournament(message.channel.id, options);
-        if (submission.find(x => x.includes('chess')) !== undefined) options.chess = submission.find(x => x.includes('chess')).match(/(?<=\=)[\w-]+/)[0];
+        if (submission.find(x => x.includes('chess')) !== undefined) tournament.etc.chess = submission.find(x => x.includes('chess')).match(/(?<=\=)[\w-]+/)[0];
 
         let desc = 'To join the tournament, type !join or !J';
-        if (tournament.hasOwnProperty('chess')) desc += tournament.chess.includes('lichess') ? ' followed by your lichess username' : ' followed by your chess.com username';
+        if (tournament.hasOwnProperty('chess')) desc += tournament.etc.chess.includes('lichess') ? ' followed by your lichess username' : ' followed by your chess.com username';
 
         let embedFormat;
         if (tournament.format === 'elim') embedFormat = tournament.doubleElim ? 'Double Elimination' : 'Single Elimination';
@@ -355,7 +355,7 @@ client.on('message', async message => {
         // Start the tournament with !start
         if (/^!start$/i.test(message.content)) {
             if (tournament.players.length < 2) return;
-            if (tournament.seededPlayers && !tournament.hasOwnProperty('chess')) {
+            if (tournament.seededPlayers && !tournament.etc.hasOwnProperty('chess')) {
                 tournament.waiting = true;
                 const content = tournament.players.map(p => ({
                     id: p.id,
@@ -409,27 +409,44 @@ client.on('message', async message => {
     // Join a tournament with !join or !J
     if (/^!(j(?=\s|$)|join)(\s\w*)?/i.test(message.content)) {
         let seed = null;
-        if (tournament.hasOwnProperty('chess')) {
+        let username = null;
+        if (tournament.etc.hasOwnProperty('chess')) {
             const usernameArray = message.content.match(/(?<=[!J|!join]\s)[\w-]+/);
             if (usernameArray === null) {
                 message.react('❌');
                 return;
             }
             username = usernameArray[0];
-            let rule = tournament.chess.match(/(?<=-)\w+/)[0];
-            if (tournament.chess.includes('lichess')) {
-                const resp = await fetch('https://lichess.org/api/user/' + username);
-                const obj = await resp.json();
-                seed = obj.perfs[rule].rating;
+            let rule = tournament.etc.chess.match(/(?<=-)\w+/)[0];
+            if (tournament.etc.chess.includes('lichess')) {
+                try {
+                    const resp = await fetch('https://lichess.org/api/user/' + username);
+                    const obj = await resp.json();
+                    seed = obj.perfs[rule].rating;
+                } catch (error) {
+                    console.error(error);
+                    message.react('❌');
+                    return;
+                }
             } else {
                 rule = 'chess_' + rule;
-                const resp = await fetch('https://api.chess.com/pub/player/' + username + '/stats');
-                const obj = await resp.json();
-                seed = obj.hasOwnProperty(rule) ? obj[rule].last.rating : 1200;
+                try {
+                    const resp = await fetch('https://api.chess.com/pub/player/' + username + '/stats');
+                    const obj = await resp.json();
+                    seed = obj.hasOwnProperty(rule) ? obj[rule].last.rating : 1200;
+                } catch (error) {
+                    console.error(error);
+                    message.react('❌');
+                    return;
+                }
             }
         }
         let add = tournament.addPlayer(message.author.username, message.author.id, seed);
-        if (add) message.react('✅');
+        if (add) {
+            message.react('✅');
+            const p = tournament.players.find(p => p.id === message.author.id);
+            p.etc.chess = username;
+        }
         else message.react('❌');
         return;
     }
