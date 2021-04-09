@@ -259,7 +259,7 @@ client.on('message', async message => {
         if (submission.find(x => x.includes('chess')) !== undefined) tournament.etc.chess = submission.find(x => x.includes('chess')).match(/(?<=\=)[\w-]+/)[0];
 
         let desc = 'To join the tournament, type !join or !J';
-        if (tournament.hasOwnProperty('chess')) desc += tournament.etc.chess.includes('lichess') ? ' followed by your lichess username' : ' followed by your chess.com username';
+        if (tournament.etc.hasOwnProperty('chess')) desc += tournament.etc.chess.includes('lichess') ? ' followed by your lichess username' : ' followed by your chess.com username';
 
         let embedFormat;
         if (tournament.format === 'elim') embedFormat = tournament.doubleElim ? 'Double Elimination' : 'Single Elimination';
