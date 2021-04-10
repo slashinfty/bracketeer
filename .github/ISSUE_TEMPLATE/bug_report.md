@@ -8,6 +8,7 @@ assignees: ''
 ---
 
 **If possible, please upload the json of your tournament!**
+You can use !json to get a copy if the tournament is active.
 
 **Describe the bug**
 A clear and concise description of what the bug is.

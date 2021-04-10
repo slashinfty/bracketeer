@@ -71,8 +71,8 @@ const info = t => {
     matches.forEach(m => {
         object.pairings.push({
             matchNumber: 'R' + m.round + 'M' + m.matchNumber,
-            playerOne: m.playerOne === null ? 'N/A' : t.hasOwnProperty('chess') ? m.playerOne.alias + ' (' + m.playerOne.seed + ')' : m.playerOne.alias,
-            playerTwo: m.playerTwo === null ? 'N/A' : t.hasOwnProperty('chess') ? m.playerTwo.alias + ' (' + m.playerTwo.seed + ')' : m.playerTwo.alias,
+            playerOne: m.playerOne === null ? 'N/A' : t.etc.hasOwnProperty('chess') ? m.playerOne.alias + ' (' + m.playerOne.seed + ')' : m.playerOne.alias,
+            playerTwo: m.playerTwo === null ? 'N/A' : t.etc.hasOwnProperty('chess') ? m.playerTwo.alias + ' (' + m.playerTwo.seed + ')' : m.playerTwo.alias,
             active: m.active,
             result: m.draws === 0 ? m.playerOneWins + '-' + m.playerTwoWins : m.playerOneWins + '-' + m.playerTwoWins + '-' + m.draws
         });
@@ -113,7 +113,7 @@ const info = t => {
     standings.forEach((s, i) => {
         const obj = {
             rank: i + 1,
-            player: t.hasOwnProperty('chess') ? s.alias + ' (' + s.seed + ')' : s.alias,
+            player: t.etc.hasOwnProperty('chess') ? s.alias + ' (' + s.seed + ')' : s.alias,
             matchPoints: s.matchPoints
         };
         const a = [i + 1, s.alias, s.matchPoints];
@@ -169,13 +169,19 @@ client.once('ready', () => {
         status: 'online'
     });
 
+    // Create archive file if necessary
+    const arch = path.join(__dirname + '/static/archive.json');
+    if (!fs.existsSync(arch)) {
+        const empty = [];
+        fs.writeFileSync(arch, JSON.stringify(empty));
+    }
+
     // Recover saved information
     const file = path.join(__dirname + '/static/save.json');
     if (!fs.existsSync(file)) {
-	console.log('file does not exist');
         const empty = [];
         fs.writeFileSync(file, JSON.stringify(empty));
-    };
+    }
     const contents = fs.readFileSync(file);
     EventManager = new TournamentOrganizer.EventManager();
     EventManager.tournaments = JSON.parse(contents);
@@ -224,7 +230,7 @@ client.on('message', async message => {
         }
         if (submission.find(x => x.includes('playoffs')) !== undefined) options.playoffs = submission.find(x => x.includes('playoffs')).match(/(?<=\=)[\w-]+/)[0];
         if (submission.find(x => x.includes('win')) !== undefined) options.winValue = Number(submission.find(x => x.includes('win')).match(/(?<=\=)[\w-]+/)[0]);
-        if (submission.find(x => x.includes('draw')) !== undefined) options.drawvalue = Number(submission.find(x => x.includes('draw')).match(/(?<=\=)[\w-]+/)[0]);
+        if (submission.find(x => x.includes('draw')) !== undefined) options.drawValue = Number(submission.find(x => x.includes('draw')).match(/(?<=\=)[\w-]+/)[0]);
         if (submission.find(x => x.includes('loss')) !== undefined) options.lossValue = Number(submission.find(x => x.includes('loss')).match(/(?<=\=)[\w-]+/)[0]);
         if (submission.find(x => x.includes('bestof')) !== undefined) options.bestOf = Number(submission.find(x => x.includes('bestof')).match(/(?<=\=)[\w-]+/)[0]);
         if (submission.find(x => x.includes('maxplayers')) !== undefined) options.maxPlayers = Number(submission.find(x => x.includes('maxplayers')).match(/(?<=\=)[\w-]+/)[0]);
@@ -244,7 +250,11 @@ client.on('message', async message => {
         if (submission.find(x => x.includes('chess')) !== undefined) tournament.etc.chess = submission.find(x => x.includes('chess')).match(/(?<=\=)[\w-]+/)[0];
 
         let desc = 'To join the tournament, type !join or !J';
-        if (tournament.etc.hasOwnProperty('chess')) desc += tournament.etc.chess.includes('lichess') ? ' followed by your lichess username' : ' followed by your chess.com username';
+        if (tournament.etc.hasOwnProperty('chess')) {
+            tournament.seededPlayers = true;
+            tournament.seedOrder = des;
+            desc += tournament.etc.chess.includes('lichess') ? ' followed by your lichess username' : ' followed by your chess.com username';
+        }
 
         let embedFormat;
         if (tournament.format === 'elim') embedFormat = tournament.doubleElim ? 'Double Elimination' : 'Single Elimination';
@@ -372,6 +382,13 @@ client.on('message', async message => {
             message.channel.send('There are ' + count + ' active players.' + list);
         }
 
+        // Get a copy of the tournament in JSON format with !json
+        if (/^!json$/i.test(message.content)) {
+            const buffer = Buffer.from(JSON.stringify(tournament));
+            const attachment = new Discord.MessageAttachment(buffer, tournament.name + '.json');
+            message.reply('Here is a copy of your tournament.', attachment);
+        }
+
         // End a tournament early with !end
         // regex: /^!end$/i
         if (/^!end$/i.test(message.content)) {
@@ -396,7 +413,7 @@ client.on('message', async message => {
 
     // Join a tournament with !join or !J
     if (/^!(j(?=\s|$)|join)(\s\w*)?/i.test(message.content)) {
-        let seed = null;
+        let seed = 0;
         let username = null;
         if (tournament.etc.hasOwnProperty('chess')) {
             const usernameArray = message.content.match(/(?<=[!J|!join]\s)[\w-]+/);
@@ -495,12 +512,18 @@ client.on('message', async message => {
             } catch (err) {
                 message.channel.send('There are new matches!')
                 console.log(err);
+                return;
             }
         }
         if (!tournament.active) {
             const buffer = Buffer.from(JSON.stringify(tournament));
             const attachment = new Discord.MessageAttachment(buffer, tournament.name + '.json');
             message.channel.send('The tournament is now over.\n```\n' + info(tournament) + '\n```', attachment);
+            const arch = path.join(__dirname + '/static/archive.json');
+            const contents = fs.readFileSync(arch);
+            const archive = JSON.parse(contents);
+            archive.push(tournament);
+            fs.writeFileSync(arch, JSON.stringify(archive));
             EventManager.removeTournament(tournament);
             const ref = db.ref('tournaments');
             ref.child(tournament.eventID).set(null);
@@ -527,7 +550,16 @@ client.on('message', async message => {
             } catch (err) {
                 message.channel.send('There are new matches!')
                 console.log(err);
+                return;
             }
+        }
+        if (!tournament.active) {
+            const buffer = Buffer.from(JSON.stringify(tournament));
+            const attachment = new Discord.MessageAttachment(buffer, tournament.name + '.json');
+            message.channel.send('The tournament is now over.\n```\n' + info(tournament) + '\n```', attachment);
+            EventManager.removeTournament(tournament);
+            const ref = db.ref('tournaments');
+            ref.child(tournament.eventID).set(null);
         }
     }
 
@@ -550,6 +582,14 @@ client.on('guildMemberRemove', member => {
             message.channel.send('There are new matches!')
             console.log(err);
         }
+    }
+    if (!tournament.active) {
+        const buffer = Buffer.from(JSON.stringify(tournament));
+        const attachment = new Discord.MessageAttachment(buffer, tournament.name + '.json');
+        message.channel.send('The tournament is now over.\n```\n' + info(tournament) + '\n```', attachment);
+        EventManager.removeTournament(tournament);
+        const ref = db.ref('tournaments');
+        ref.child(tournament.eventID).set(null);
     }
 });
 
