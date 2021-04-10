@@ -183,8 +183,9 @@ client.once('ready', () => {
         fs.writeFileSync(file, JSON.stringify(empty));
     }
     const contents = fs.readFileSync(file);
+    const oldTournaments = JSON.parse(contents);
     EventManager = new TournamentOrganizer.EventManager();
-    EventManager.tournaments = JSON.parse(contents);
+    EventManager.tournaments = oldTournaments.map(ot => EventManager.reloadTournament(ot));
 });
 
 // Interpreting messages
@@ -329,7 +330,7 @@ client.on('message', async message => {
     // Admin commands
     if (message.member.hasPermission('ADMINISTRATOR')) {
         // Upload a file with !upload
-        if (/^!upload$/i.test(message.content) && message.attachments.size !== 0 && tournament.hasOwnProperty('waiting') && tournament.waiting) {
+        if (/^!upload$/i.test(message.content) && message.attachments.size !== 0 && tournament.etc.hasOwnProperty('waiting') && tournament.etc.waiting) {
             if (tournament.players.length < 2) return;
             let object;
             try {
@@ -340,7 +341,7 @@ client.on('message', async message => {
                 return;
             }
             object.forEach(entry => tournament.players.find(p => p.id === entry.id).seed = entry.value);
-            tournament.waiting = false;
+            tournament.etc.waiting = false;
             tournament.startEvent();
             info(tournament);
             message.channel.send('Your tournament has started! View real-time pairings and standings at https://slashinfty.github.io/bracketeer/viewer?data=' + tournament.eventID + '\n```\n' + markdownTable(tournament.activeMatches()) + '\n```');
@@ -354,7 +355,7 @@ client.on('message', async message => {
         if (/^!start$/i.test(message.content)) {
             if (tournament.players.length < 2) return;
             if (tournament.seededPlayers && !tournament.etc.hasOwnProperty('chess')) {
-                tournament.waiting = true;
+                tournament.etc.waiting = true;
                 const content = tournament.players.map(p => ({
                     id: p.id,
                     name: p.alias,
@@ -362,7 +363,8 @@ client.on('message', async message => {
                 }));
                 const buffer = Buffer.from(JSON.stringify(content));
                 const attachment = new Discord.MessageAttachment(buffer, 'AddPlayerValues.json');
-                message.reply('Please add values to each player for sorting. When uploading the file, add `!upload` in the message.', attachment);
+                const order = tournament.seedOrder === 'asc' ? 'ascending' : 'descending';
+                message.reply('Please add values to each player for sorting. Players will be sorted in ' + order + ' order. When uploading the file, add `!upload` in the message.', attachment);
                 return;
             }
             tournament.startEvent();
@@ -415,6 +417,10 @@ client.on('message', async message => {
     if (/^!(j(?=\s|$)|join)(\s\w*)?/i.test(message.content)) {
         let seed = 0;
         let username = null;
+        if (tournament.etc.hasOwnProperty('waiting') && tournament.etc.waiting) {
+            message.react('❌');
+            return;
+        }
         if (tournament.etc.hasOwnProperty('chess')) {
             const usernameArray = message.content.match(/(?<=[!J|!join]\s)[\w-]+/);
             if (usernameArray === null) {
