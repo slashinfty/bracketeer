@@ -252,7 +252,7 @@ client.on('message', async message => {
         let desc = 'To join the tournament, type !join or !J';
         if (tournament.etc.hasOwnProperty('chess')) {
             tournament.seededPlayers = true;
-            tournament.seedOrder = des;
+            tournament.seedOrder = 'des';
             desc += tournament.etc.chess.includes('lichess') ? ' followed by your lichess username' : ' followed by your chess.com username';
         }
 
