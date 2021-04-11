@@ -612,7 +612,7 @@ client.on('channelDelete', channel => {
 client.on('guildDelete', guild => {
     const tournamentIDs = EventManager.tournaments.map(t => t.eventID);
     const ref = db.ref('tournaments');
-    if (guild.channels.guild.channels.some(x => tournamentIDs.includes(x))) {
+    if (guild.channels.cache.map(x => x.id).some(x => tournamentIDs.includes(x))) {
         const oldTournaments = guild.channels.guild.channels.filter(x => tournamentIDs.includes(x));
         oldTournaments.forEach(t => {
             const tournament = EventManager.tournaments.find(tour => tour.eventID === t);
