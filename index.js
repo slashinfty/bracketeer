@@ -159,7 +159,7 @@ const info = t => {
 // Bot is on
 client.once('ready', () => {
     console.log('Bracketeer is online at ' + new Date(Date.now()));
-    console.log('Number of servers that Bracketeer is in: ' + client.guilds.array().length);
+    console.log('Number of servers that Bracketeer is in: ' + client.guilds.cache.length);
     
     // Discord presence
     client.user.setPresence({
