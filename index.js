@@ -159,6 +159,7 @@ const info = t => {
 // Bot is on
 client.once('ready', () => {
     console.log('Bracketeer is online at ' + new Date(Date.now()));
+    console.log('Number of servers that Bracketeer is in: ' + client.guilds.array().length);
     
     // Discord presence
     client.user.setPresence({
@@ -613,7 +614,7 @@ client.on('guildDelete', guild => {
     const tournamentIDs = EventManager.tournaments.map(t => t.eventID);
     const ref = db.ref('tournaments');
     if (guild.channels.cache.map(x => x.id).some(x => tournamentIDs.includes(x))) {
-        const oldTournaments = guild.channels.guild.channels.filter(x => tournamentIDs.includes(x));
+        const oldTournaments = guild.channels.cache.map(x => x.id).filter(x => tournamentIDs.includes(x));
         oldTournaments.forEach(t => {
             const tournament = EventManager.tournaments.find(tour => tour.eventID === t);
             EventManager.removeTournament(tournament);
