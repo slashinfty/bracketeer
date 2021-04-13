@@ -550,7 +550,7 @@ client.on('message', async message => {
             return;
         } else message.react('✅');
         info(tournament);
-        if (typeof newMatches === object && newMatches.length > 0) {
+        if (typeof newMatches === 'object' && newMatches.length > 0) {
             let msg = 'There are new matches!\n```\n' + matchTable(newMatches) + '\n```';
             try {
                 message.channel.send(msg);
