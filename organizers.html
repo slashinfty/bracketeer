@@ -5,7 +5,7 @@
   <!-- Basic Page Needs
   –––––––––––––––––––––––––––––––––––––––––––––––––– -->
   <meta charset="utf-8">
-  <title>Bracketeer - Admin Guide</title>
+  <title>Bracketeer - Organizer Guide</title>
   <meta name="description" content="Discord bot for organizing tournaments">
   <meta name="author" content="Matt Braddock">
 
@@ -34,8 +34,12 @@
   <div class="container">
     <div class="row">
       <div class="two-thirds column" style="margin-top: 5%">
-        <h4>Admin Guide</h4>
-        <p>As an administrator, you can create, start, and end tournaments. Tournaments will take place in the channel where the tournament is created, and all commands must be sent in that channel.</p>
+        <h4>Organizer Guide</h4>
+        <p>As an organizer, you can create, start, and end tournaments. Tournaments will take place in the channel where the tournament is created, and all commands must be sent in that channel.</p>
+        <p>
+            <code>!to [add/remove] @role</code>
+            (Server administrators only) Add or remove a role that functions as a tournament organizer. Only server admins and any roles identified by this command can use the commands below.
+        </p>
         <p>
             <code>!new [options]</code><br>
             Create a new tournament. It is strongly suggested to use the <a href="generator.html">generator</a> to create a command for a new tournament.
@@ -57,8 +61,8 @@
             Ends a tournament.
         </p>
         <p>
-            <code>!result w-l[-d] @player</code><br>
-            Edit the most recent match of a player. Wins correspond to the tagged player. Draws are only required if greater than 0.<br>
+            <code>!result w-l[-d] R#M#</code><br>
+            Enter a result for a specific match denoted by round number and match number. The result is for player one.<br>
             If the result is 0-0, then the match is reset.
         </p>
         <p>

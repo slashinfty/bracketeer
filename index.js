@@ -26,7 +26,7 @@ const app = admin.initializeApp({
 const db = app.database();
 
 // Prepare Tournament Organizer
-var EventManager;
+var EventManager, RoleManager;
 
 // Start Discord
 const client = new Discord.Client();
@@ -170,6 +170,13 @@ client.once('ready', () => {
         status: 'online'
     });
 
+    // Create role file if necessary
+    const roles = path.join(__dirname + '/static/roles.json');
+    if (!fs.existsSync(roles)) {
+        const empty = [];
+        fs.writeFileSync(roles, JSON.stringify(empty));
+    }
+
     // Create archive file if necessary
     const arch = path.join(__dirname + '/static/archive.json');
     if (!fs.existsSync(arch)) {
@@ -188,6 +195,10 @@ client.once('ready', () => {
     EventManager = new TournamentOrganizer.EventManager();
     EventManager.tournaments = oldTournaments.map(ot => EventManager.reloadTournament(ot));
 
+    // Recover roles
+    const rolesContent = fs.readFileSync(roles);
+    RoleManager = JSON.parse(rolesContent);
+
     console.log('Number of tournaments that are active: ' + EventManager.tournaments.reduce((acc, cur) => acc += cur.active, 0));
 });
 
@@ -202,8 +213,22 @@ client.on('message', async message => {
         return;
     }
 
+    if (message.member.hasPermission('ADMINISTRATOR') && /^!to\s(add|remove)\s<@!\d+>/i.test(message.content) && message.mentions.roles.size === 1) {
+        const roleID = message.mentions.roles.first().id;
+        if (message.content.includes('add')) {
+            if (!RoleManager.includes(roleID)) RoleManager.push(roleID);
+            message.react('✅');
+        } else {
+            if (RoleManager.includes(roleID)) {
+                RoleManager.splice(RoleManager.indexOf(roleID), 1);
+                message.react('✅');
+            } else message.react('❌');
+        }
+        fs.writeFileSync(path.join(__dirname + '/static/roles.json'), JSON.stringify(RoleManager));
+    }
+
     // Create a tournament with !new
-    if (message.member.hasPermission('ADMINISTRATOR') && /^!new(\s\w+=[\w-,]+)*/i.test(message.content)) {
+    if ((message.member.hasPermission('ADMINISTRATOR') || [...message.member.roles.cache.keys()].some(x => RoleManager.includes(x))) && /^!new(\s\w+=[\w-,]+)*/i.test(message.content)) {
         // If !new without options, link to option generator
         if (message.content === '!new') {
             message.reply(`Looking for how to start a tournament? Try this: https://slashinfty.github.io/bracketeer/generator`);
@@ -331,7 +356,7 @@ client.on('message', async message => {
     if (tournament === undefined) return;
 
     // Admin commands
-    if (message.member.hasPermission('ADMINISTRATOR')) {
+    if (message.member.hasPermission('ADMINISTRATOR') || [...message.member.roles.cache.keys()].some(x => RoleManager.includes(x))) {
         // Upload a file with !upload
         if (/^!upload$/i.test(message.content) && message.attachments.size !== 0 && tournament.etc.hasOwnProperty('waiting') && tournament.etc.waiting) {
             if (tournament.players.length < 2) return;
@@ -488,15 +513,17 @@ client.on('message', async message => {
     }
 
     // Report results with !results or !report or !R
-    if (/^!(r(?=\s)|result|report)\s\d+-\d+(-\d+)?(\s<@!\d+>)?/i.test(message.content)) {
+    if (/^!(r(?=\s)|result|report)\s\d+-\d+(-\d+)?(\sr\d{1,2}m\d{1,3})?/i.test(message.content)) {
         const result = message.content.match(/(?<=[!r(?=\s)|!result|!report]\s)\d+-\d+(-\d+)?/i);
         const games = result[0].split('-').map(g => parseInt(g));
         if (games.length === 2) games.push(0);
         let match;
         let reportingPlayer;
-        if (message.member.hasPermission("ADMINISTRATOR") && message.mentions.users.size === 1) {
-            reportingPlayer = tournament.players.find(p => p.id === message.mentions.users.first().id);
-            match = tournament.matches.find(m => m.id === reportingPlayer.results[reportingPlayer.results.length - 1].match);
+        if ((message.member.hasPermission('ADMINISTRATOR') || [...message.member.roles.cache.keys()].some(x => RoleManager.includes(x))) && message.mentions.users.size === 1) {
+            //reportingPlayer = tournament.players.find(p => p.id === message.mentions.users.first().id);
+            const roundNo = message.content.match(/(?<=r)\d+(?=m)/i)[0];
+            const matchNo = message.content.match(/(?<=m)\d?/i)[0];
+            match = tournament.matches.find(m => m.round === parseInt(roundNo) && m.matchNumber === parseInt(matchNo));
             if (games[0] === 0 && games[1] === 0) {
                 tournament.undoResults(match);
                 message.react('✅');
@@ -550,7 +577,7 @@ client.on('message', async message => {
     // Quit the tournament with !quit or !Q
     if (/^!(q|quit)(\s<@\d+>)?/i.test(message.content)) {
         let player;
-        if (message.member.hasPermission("ADMINISTRATOR") && message.mentions.users.size === 1) player = tournament.players.find(p => p.id === message.mentions.users.first().id);
+        if ((message.member.hasPermission('ADMINISTRATOR') || [...message.member.roles.cache.keys()].some(x => RoleManager.includes(x))) && message.mentions.users.size === 1) player = tournament.players.find(p => p.id === message.mentions.users.first().id);
         else player = tournament.players.find(p => p.id === message.author.id);
         if (player === undefined) message.react('❌');
         const newMatches = tournament.removePlayer(player);
@@ -621,6 +648,13 @@ client.on('channelDelete', channel => {
     console.log('Tournament ended! There ' + word + ' running.');
 });
 
+// If a role is deleted, if it's a TO role, remove it
+client.on('roleDelete', role => {
+    const oldRole = RoleManager.indexOf(role.id);
+    if (oldRole > -1) RoleManager.splice(oldRole, 1);
+    fs.writeFileSync(path.join(__dirname + '/static/roles.json'), JSON.stringify(RoleManager));
+});
+
 // If the bot is removed from a server, delete any tournaments being ran
 client.on('guildDelete', guild => {
     const tournamentIDs = EventManager.tournaments.map(t => t.eventID);
@@ -632,6 +666,11 @@ client.on('guildDelete', guild => {
             EventManager.removeTournament(tournament);
             ref.child(tournament.eventID).set(null);
         });
+    }
+    if ([...guild.roles.cache.keys()].some(x => RoleManager.includes(x))) {
+        const oldRoles = [...guild.roles.cache.keys()].filter(x => RoleManager.includes(x));
+        oldRoles.forEach(r => RoleManager.splice(RoleManager.indexOf(r), 1));
+        fs.writeFileSync(path.join(__dirname + '/static/roles.json'), JSON.stringify(RoleManager));
     }
     const number = [...client.guilds.cache].length;
     const word = number === 1 ? ' server.' : ' servers.';
