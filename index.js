@@ -71,8 +71,8 @@ const info = t => {
     matches.forEach(m => {
         object.pairings.push({
             matchNumber: 'R' + m.round + 'M' + m.matchNumber,
-            playerOne: m.playerOne === null ? 'N/A' : t.etc.hasOwnProperty('chess') ? m.playerOne.alias + ' (' + m.playerOne.seed + ')' : m.playerOne.alias,
-            playerTwo: m.playerTwo === null ? 'N/A' : t.etc.hasOwnProperty('chess') ? m.playerTwo.alias + ' (' + m.playerTwo.seed + ')' : m.playerTwo.alias,
+            playerOne: m.playerOne === null || m.playerOne === undefined ? 'N/A' : t.etc.hasOwnProperty('chess') ? m.playerOne.alias + ' (' + m.playerOne.seed + ')' : m.playerOne.alias,
+            playerTwo: m.playerTwo === null || m.playerTwo === undefined ? 'N/A' : t.etc.hasOwnProperty('chess') ? m.playerTwo.alias + ' (' + m.playerTwo.seed + ')' : m.playerTwo.alias,
             active: m.active,
             result: m.draws === 0 ? m.playerOneWins + '-' + m.playerTwoWins : m.playerOneWins + '-' + m.playerTwoWins + '-' + m.draws
         });
