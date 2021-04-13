@@ -370,7 +370,14 @@ client.on('message', async message => {
             }
             tournament.startEvent();
             info(tournament);
-            message.channel.send('Your tournament has started! View real-time pairings and standings at https://slashinfty.github.io/bracketeer/viewer?data=' + tournament.eventID + '\n```\n' + markdownTable(tournament.activeMatches()) + '\n```');
+            const msg = 'Your tournament has started! View real-time pairings and standings at https://slashinfty.github.io/bracketeer/viewer?data=' + tournament.eventID + '\n```\n' + matchTable(tournament.activeMatches()) + '\n```';
+            try {
+                message.channel.send(msg);
+            } catch (err) {
+                message.channel.send('Your tournament has started! View real-time pairings and standings at https://slashinfty.github.io/bracketeer/viewer?data=' + tournament.eventID);
+                console.log(err);
+                return;
+            }
             const number = EventManager.tournaments.reduce((acc, cur) => acc += cur.active, 0);
             const word = number === 1 ? 'is currently ' + number + ' tournament' : 'are currently ' + number + ' tournaments';
             console.log('Tournament started! There ' + word + ' running.');
