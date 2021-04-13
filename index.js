@@ -621,13 +621,13 @@ client.on('guildDelete', guild => {
             ref.child(tournament.eventID).set(null);
         });
     }
-    const number = client.guilds.array().length;
+    const number = [...client.guilds.cache].length;
     const word = number === 1 ? ' server.' : ' servers.';
     console.log('Bracketeer left a server. Now in ' + number + word);
 });
 
 client.on('guideCreate', guild => {
-    const number = client.guilds.array().length;
+    const number = [...client.guilds.cache].length;
     const word = number === 1 ? ' server.' : ' servers.';
     console.log('Bracketeer joined a server. Now in ' + number + word);
 });
