@@ -187,6 +187,8 @@ client.once('ready', () => {
     const oldTournaments = JSON.parse(contents);
     EventManager = new TournamentOrganizer.EventManager();
     EventManager.tournaments = oldTournaments.map(ot => EventManager.reloadTournament(ot));
+
+    console.log('Number of tournaments that are active: ' + EventManager.tournaments.reduce((acc, cur) => acc += cur.active, 0));
 });
 
 // Interpreting messages
@@ -614,6 +616,9 @@ client.on('channelDelete', channel => {
     EventManager.removeTournament(tournament);
     const ref = db.ref('tournaments');
     ref.child(tournament.eventID).set(null);
+    const number = EventManager.tournaments.reduce((acc, cur) => acc += cur.active, 0);
+    const word = number === 1 ? 'is currently ' + number + ' tournament' : 'are currently ' + number + ' tournaments';
+    console.log('Tournament ended! There ' + word + ' running.');
 });
 
 // If the bot is removed from a server, delete any tournaments being ran
