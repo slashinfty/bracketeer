@@ -1,3 +1,6 @@
+var database, data, pairingsTable, standingsTable;
+const select = document.getElementById('tournament');
+
 $(document).ready(() => {
     // Firebase configuration
     var firebaseConfig = {
@@ -13,11 +16,9 @@ $(document).ready(() => {
 
     // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
-    const database = firebase.database();
+    database = firebase.database();
 
     // Get initial data
-    var data, pairingsTable, standingsTable;
-    const select = document.getElementById('tournament');
     database.ref('tournaments').get().then(snapshot => {
         data = snapshot.val();
         // Fill dropdown with tournaments
@@ -31,21 +32,27 @@ $(document).ready(() => {
         // Load table if search params present
         let url = new URL(window.location.href);
         let tableData;
-        if (url.searchParams.has('data')) tableData = data[url.searchParams.get('data')];
-        pairingsTable = $('#pairings').DataTable({
-            data: tableData !== undefined ? tableData.pairings : {},
-            scrollY: '290px',
-            scrollCollapse: true,
-            paging: false,
-            columns: tableData !== undefined ? tableData.columns.pairings : {}
-        });
-        standingsTable = $('#standings').DataTable({
-            data: tableData !== undefined ? tableData.standings : {},
-            scrollY: '290px',
-            scrollCollapse: true,
-            paging: false,
-            columns: tableData !== undefined ? tableData.columns.standings : {}
-        });
+        if (url.searchParams.has('data')) {
+            select.value = url.searchParams.get('data');
+            tableData = data[url.searchParams.get('data')];
+        }
+        if (tableData !== undefined) {
+            pairingsTable = $('#pairings').DataTable({
+                data: tableData.pairings,
+                scrollY: '290px',
+                scrollCollapse: true,
+                paging: false,
+                columns: tableData !== undefined ? tableData.columns.pairings : {}
+            });
+            standingsTable = $('#standings').DataTable({
+                data: tableData.standings,
+                scrollY: '290px',
+                scrollCollapse: true,
+                paging: false,
+                columns: tableData !== undefined ? tableData.columns.standings : {}
+            });
+        }
+
         // Redraw tables when values updated
         var ref = database.ref('tournaments/' + select.value);
         ref.on('value', snapshot => {
@@ -56,8 +63,47 @@ $(document).ready(() => {
                 standingsTable.clear().draw();
                 return;
             }
-            pairingsTable.clear().rows.add(update.pairings).draw();
-            standingsTable.clear().rows.add(update.standings).draw();
+            try {
+                pairingsTable.clear().rows.add(update.pairings).draw();
+            } catch (err) {
+                pairingsTable.clear().draw();
+            }
+            try {
+                standingsTable.clear().rows.add(update.standings).draw();
+            } catch (err) {
+                standingsTable.clear().draw();
+            }
         });
     });
 });
+
+const loadTournament = () => {
+    database.ref('tournaments/' + select.value).get().then(snapshot => {
+        const newEvent = snapshot.val();
+        if (newEvent === null) {
+            alert('The tournament is now over.');
+            pairingsTable.clear().draw();
+            standingsTable.clear().draw();
+            return;
+        }
+        try {
+            pairingsTable.clear().rows.add(newEvent.pairings).draw();
+        } catch (err) {
+            pairingsTable.clear().draw();
+        }
+        try {
+            standingsTable.destroy();
+            $('#standings').empty();
+            standingsTable = $('#standings').DataTable({
+                data: newEvent !== undefined ? newEvent.standings : {},
+                scrollY: '290px',
+                scrollCollapse: true,
+                paging: false,
+                columns: newEvent !== undefined ? newEvent.columns.standings : {}
+            });
+            standingsTable.clear().rows.add(newEvent.standings).draw();
+        } catch (err) {
+            standingsTable.clear().draw();
+        }
+    });
+}
