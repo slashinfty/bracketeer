@@ -11,6 +11,7 @@ const admin = require('firebase-admin');
 const Discord = require('discord.js');
 const TournamentOrganizer = require('tournament-organizer');
 import {markdownTable} from 'markdown-table';
+import { report } from 'process';
 
 // Load token
 require('dotenv').config({ path: path.resolve(__dirname, './.env') });
@@ -532,8 +533,10 @@ client.on('message', async message => {
             }
         } else {
             reportingPlayer = tournament.players.find(p => p.id === message.author.id);
+            console.table(reportingPlayer);
             const active = tournament.activeMatches();
             match = active.find(m => m.playerOne === reportingPlayer || m.playerTwo === reportingPlayer);
+            console.table(match);
         }
         if (reportingPlayer === undefined || match === undefined) {
             message.react('❌');
