@@ -532,22 +532,16 @@ client.on('message', async message => {
             }
         } else {
             reportingPlayer = tournament.players.find(p => p.id === message.author.id);
-            console.table(reportingPlayer);
             const active = tournament.activeMatches();
-            match = active.find(m => m.playerOne === reportingPlayer || m.playerTwo === reportingPlayer);
-            console.table(match);
+            match = active.find(m => m.playerOne.id === reportingPlayer.id || m.playerTwo.id === reportingPlayer.id);
         }
         if (reportingPlayer === undefined || match === undefined) {
             message.react('❌');
             return;
         }
         let newMatches = [];
-        console.log('match and player');
-        console.table(match);
-        console.table(reportingPlayer);
         if (match.playerOne === reportingPlayer) newMatches = tournament.result(match, games[0], games[1], games[2]);
         else newMatches = tournament.result(match, games[1], games[0], games[2]);
-        console.log('newMatches=' + newMatches);
         if (newMatches === null) {
             message.react('❌');
             return;
