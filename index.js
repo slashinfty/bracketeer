@@ -513,17 +513,17 @@ client.on('message', async message => {
     }
 
     // Report results with !results or !report or !R
-    if (/^!(r(?=\s)|result|report)\s\d+-\d+(-\d+)?(\sr\d{1,2}m\d{1,3})?/i.test(message.content)) {
+    if (/^!(r(?=\s)|result|report)\s\d+(\.\d+)?-\d+(\.\d+)?(-\d+(\.\d+)?)?(\sr\d{1,2}m\d{1,3})?/i.test(message.content)) {
         const result = message.content.match(/(?<=[!r(?=\s)|!result|!report]\s)\d+-\d+(-\d+)?/i);
         const games = result[0].split('-').map(g => parseInt(g));
         if (games.length === 2) games.push(0);
         let match;
         let reportingPlayer;
-        if ((message.member.hasPermission('ADMINISTRATOR') || [...message.member.roles.cache.keys()].some(x => RoleManager.includes(x))) && message.mentions.users.size === 1) {
-            //reportingPlayer = tournament.players.find(p => p.id === message.mentions.users.first().id);
+        if ((message.member.hasPermission('ADMINISTRATOR') || [...message.member.roles.cache.keys()].some(x => RoleManager.includes(x))) && /r\d{1,2}m\d{1,3}/i.test(message.content)) {
             const roundNo = message.content.match(/(?<=r)\d+(?=m)/i)[0];
             const matchNo = message.content.match(/(?<=m)\d?/i)[0];
             match = tournament.matches.find(m => m.round === parseInt(roundNo) && m.matchNumber === parseInt(matchNo));
+            reportingPlayer = match.playerOne;
             if (games[0] === 0 && games[1] === 0) {
                 tournament.undoResults(match);
                 message.react('✅');
@@ -540,8 +540,12 @@ client.on('message', async message => {
             return;
         }
         let newMatches = [];
+        console.log('match and player');
+        console.table(match);
+        console.table(reportingPlayer);
         if (match.playerOne === reportingPlayer) newMatches = tournament.result(match, games[0], games[1], games[2]);
         else newMatches = tournament.result(match, games[1], games[0], games[2]);
+        console.log('newMatches=' + newMatches);
         if (newMatches === null) {
             message.react('❌');
             return;
