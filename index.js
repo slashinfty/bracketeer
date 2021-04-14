@@ -11,7 +11,6 @@ const admin = require('firebase-admin');
 const Discord = require('discord.js');
 const TournamentOrganizer = require('tournament-organizer');
 import {markdownTable} from 'markdown-table';
-import { report } from 'process';
 
 // Load token
 require('dotenv').config({ path: path.resolve(__dirname, './.env') });
