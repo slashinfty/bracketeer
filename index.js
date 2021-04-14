@@ -514,8 +514,8 @@ client.on('message', async message => {
 
     // Report results with !results or !report or !R
     if (/^!(r(?=\s)|result|report)\s\d+(\.\d+)?-\d+(\.\d+)?(-\d+(\.\d+)?)?(\sr\d{1,2}m\d{1,3})?/i.test(message.content)) {
-        const result = message.content.match(/(?<=[!r(?=\s)|!result|!report]\s)\d+-\d+(-\d+)?/i);
-        const games = result[0].split('-').map(g => parseInt(g));
+        const result = message.content.match(/(?<=[!r(?=\s)|!result|!report]\s)\d+(\.\d+)?-\d+(\.\d+)?(-\d+(\.\d+)?)?/i);
+        const games = result[0].split('-').map(g => Number(g));
         if (games.length === 2) games.push(0);
         let match;
         let reportingPlayer;
