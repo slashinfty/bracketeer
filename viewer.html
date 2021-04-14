@@ -35,7 +35,9 @@
     <div class="container">
         <div class="row">
         <div style="margin-top: 5%; margin-bottom: 5%;">
-            <select name="tournament" id="tournament" onchange="loadTournament()"></select>
+            <select name="tournament" id="tournament" onchange="loadTournament()">
+                <option hidden disabled selected value> -- Select an event -- </option>
+            </select>
             <h4>Pairings</h4>
             <table id="pairings" class="compact hover" width="100%"></table>
             <p></p>
