@@ -42,6 +42,7 @@ $(document).ready(() => {
                 scrollY: '290px',
                 scrollCollapse: true,
                 paging: false,
+                responsive: true,
                 columns: tableData !== undefined ? tableData.columns.pairings : {}
             });
             standingsTable = $('#standings').DataTable({
@@ -49,6 +50,7 @@ $(document).ready(() => {
                 scrollY: '290px',
                 scrollCollapse: true,
                 paging: false,
+                responsive: true,
                 columns: tableData !== undefined ? tableData.columns.standings : {}
             });
         }
