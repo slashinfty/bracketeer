@@ -31,49 +31,48 @@ $(document).ready(() => {
 
         // Load table if search params present
         let url = new URL(window.location.href);
-        let tableData;
-        if (url.searchParams.has('data')) {
-            select.value = url.searchParams.get('data');
-            tableData = data[url.searchParams.get('data')];
-        }
-        if (tableData !== undefined) {
-            pairingsTable = $('#pairings').DataTable({
-                data: tableData.pairings,
-                scrollY: '290px',
-                scrollCollapse: true,
-                paging: false,
-                responsive: true,
-                columns: tableData !== undefined ? tableData.columns.pairings : {}
-            });
-            standingsTable = $('#standings').DataTable({
-                data: tableData.standings,
-                scrollY: '290px',
-                scrollCollapse: true,
-                paging: false,
-                responsive: true,
-                columns: tableData !== undefined ? tableData.columns.standings : {}
-            });
-        }
+        if (url.searchParams.has('data')) select.value = url.searchParams.get('data');
 
-        // Redraw tables when values updated
-        var ref = database.ref('tournaments/' + select.value);
-        ref.on('value', snapshot => {
-            const update = snapshot.val();
-            if (update === null) {
-                alert('The tournament is now over.');
-                pairingsTable.clear().draw();
-                standingsTable.clear().draw();
+        var ref = database.ref('tournaments');
+        ref.on('value', snap => {
+            const tableData = snap.val()[select.value];
+            if (select.value.length === 0) {
                 return;
-            }
-            try {
-                pairingsTable.clear().rows.add(update.pairings).draw();
-            } catch (err) {
-                pairingsTable.clear().draw();
-            }
-            try {
-                standingsTable.clear().rows.add(update.standings).draw();
-            } catch (err) {
-                standingsTable.clear().draw();
+            } else if (tableData !== undefined && (pairingsTable === undefined || standingsTable === undefined)) {
+                pairingsTable = $('#pairings').DataTable({
+                    data: tableData.pairings,
+                    scrollY: '290px',
+                    scrollCollapse: true,
+                    paging: false,
+                    responsive: true,
+                    columns: tableData.columns.pairings
+                });
+                standingsTable = $('#standings').DataTable({
+                    data: tableData.standings,
+                    scrollY: '290px',
+                    scrollCollapse: true,
+                    paging: false,
+                    responsive: true,
+                    columns: tableData.columns.standings
+                });
+            } else {
+                if (tableData === undefined) {
+                    alert('The tournament is now over.');
+                    pairingsTable.clear().draw();
+                    standingsTable.clear().draw();
+                    return;
+                }
+                const updateData = initial[select.value];
+                try {
+                    pairingsTable.clear().rows.add(updateData.pairings).draw();
+                } catch (err) {
+                    pairingsTable.clear().draw();
+                }
+                try {
+                    standingsTable.clear().rows.add(updateData.standings).draw();
+                } catch (err) {
+                    standingsTable.clear().draw();
+                }
             }
         });
     });
@@ -86,6 +85,25 @@ const loadTournament = () => {
             alert('The tournament is now over.');
             pairingsTable.clear().draw();
             standingsTable.clear().draw();
+            return;
+        }
+        if (pairingsTable === undefined || standingsTable === undefined) {
+            pairingsTable = $('#pairings').DataTable({
+                data: newEvent.pairings,
+                scrollY: '290px',
+                scrollCollapse: true,
+                paging: false,
+                responsive: true,
+                columns: newEvent.columns.pairings
+            });
+            standingsTable = $('#standings').DataTable({
+                data: newEvent.standings,
+                scrollY: '290px',
+                scrollCollapse: true,
+                paging: false,
+                responsive: true,
+                columns: newEvent.columns.standings
+            });
             return;
         }
         try {
