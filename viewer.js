@@ -62,14 +62,13 @@ $(document).ready(() => {
                     standingsTable.clear().draw();
                     return;
                 }
-                const updateData = initial[select.value];
                 try {
-                    pairingsTable.clear().rows.add(updateData.pairings).draw();
+                    pairingsTable.clear().rows.add(tableData.pairings).draw();
                 } catch (err) {
                     pairingsTable.clear().draw();
                 }
                 try {
-                    standingsTable.clear().rows.add(updateData.standings).draw();
+                    standingsTable.clear().rows.add(tableData.standings).draw();
                 } catch (err) {
                     standingsTable.clear().draw();
                 }
