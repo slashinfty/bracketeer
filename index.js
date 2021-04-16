@@ -32,6 +32,36 @@ var EventManager, RoleManager;
 const client = new Discord.Client();
 client.login(process.env.DISCORD_TOKEN);
 
+// Add reaction
+const react = (msg, bool) => {
+    try {
+        const reaction = bool ? '✅' : '❌';
+        msg.react(reaction);
+    } catch (err) {
+        console.error(err);
+    }
+}
+
+// Send reply
+const reply = (msg, text, attach = null) => {
+    try {
+        if (attach === null) msg.reply(text);
+        else msg.reply(text, attach);
+    } catch (err) {
+        console.error(err);
+    }
+}
+
+// Send message
+const send = (msg, text, attach = null) => {
+    try {
+        if (attach === null) msg.channel.send(text);
+        else msg.channel.send(text, attach);
+    } catch (err) {
+        console.error(err);
+    }
+}
+
 // Save tournaments function
 const save = () => fs.writeFileSync(path.join(__dirname + '/static/save.json'), JSON.stringify(EventManager.tournaments));
 
@@ -209,7 +239,7 @@ client.on('message', async message => {
 
     // Get help with !bracketeer
     if (/^!(bracketeer|help)$/i.test(message.content)) {
-        message.reply('If you need help, please check out https://slashinfty.github.io/bracketeer/');
+        reply(message, 'If you need help, please check out https://slashinfty.github.io/bracketeer/');
         return;
     }
 
@@ -217,12 +247,12 @@ client.on('message', async message => {
         const roleID = message.mentions.roles.first().id;
         if (message.content.includes('add')) {
             if (!RoleManager.includes(roleID)) RoleManager.push(roleID);
-            message.react('✅');
+            react(message, true);
         } else {
             if (RoleManager.includes(roleID)) {
                 RoleManager.splice(RoleManager.indexOf(roleID), 1);
-                message.react('✅');
-            } else message.react('❌');
+                react(message, true);
+            } else react(message, false);
         }
         fs.writeFileSync(path.join(__dirname + '/static/roles.json'), JSON.stringify(RoleManager));
     }
@@ -231,12 +261,12 @@ client.on('message', async message => {
     if ((message.member.hasPermission('ADMINISTRATOR') || [...message.member.roles.cache.keys()].some(x => RoleManager.includes(x))) && /^!new(\s\w+=[\w-,]+)*/i.test(message.content)) {
         // If !new without options, link to option generator
         if (message.content === '!new') {
-            message.reply(`Looking for how to start a tournament? Try this: https://slashinfty.github.io/bracketeer/generator`);
+            reply(message, `Looking for how to start a tournament? Try this: https://slashinfty.github.io/bracketeer/generator`);
             return;
         }
         // If a tournament is already happening
         if (EventManager.tournaments.find(t => t.eventID === message.channel.id) !== undefined) {
-            message.reply(`Sorry, a tournament is already ongoing in this channel. You can only have one tournament per channel.`);
+            reply(message, `Sorry, a tournament is already ongoing in this channel. You can only have one tournament per channel.`);
             return;
         }
         let submission = message.content.split(' ');
@@ -345,10 +375,10 @@ client.on('message', async message => {
             });
         }
 
-        message.channel.send({ embed: embed });
+        send(message, { embed: embed });
         const number = EventManager.tournaments.length;
         const word = number === 1 ? 'is currently ' + number + ' tournament' : 'are currently ' + number + ' tournaments';
-            console.log('Tournament created! There ' + word + '.');
+        console.log('Tournament created! There ' + word + '.');
     }
 
     // Find the active tournament, or return if it doesn't exist
@@ -365,14 +395,14 @@ client.on('message', async message => {
                 let response = await fetch(message.attachments.first().url);
                 object = await response.json();
             } catch (e) {
-                message.reply('Sorry, that is not a valid file.');
+                reply(message, 'Sorry, that is not a valid file.');
                 return;
             }
             object.forEach(entry => tournament.players.find(p => p.id === entry.id).seed = entry.value);
             tournament.etc.waiting = false;
             tournament.startEvent();
             info(tournament);
-            message.channel.send('Your tournament has started! View real-time pairings and standings at https://slashinfty.github.io/bracketeer/viewer?data=' + tournament.eventID + '\n```\n' + markdownTable(tournament.activeMatches()) + '\n```');
+            send(message, 'Your tournament has started! View real-time pairings and standings at https://slashinfty.github.io/bracketeer/viewer?data=' + tournament.eventID + '\n```\n' + markdownTable(tournament.activeMatches()) + '\n```');
             const number = EventManager.tournaments.reduce((acc, cur) => acc += cur.active, 0);
             const word = number === 1 ? 'is currently ' + number + ' tournament' : 'are currently ' + number + ' tournaments';
             console.log('Tournament started! There ' + word + ' running.');
@@ -392,7 +422,7 @@ client.on('message', async message => {
                 const buffer = Buffer.from(JSON.stringify(content));
                 const attachment = new Discord.MessageAttachment(buffer, 'AddPlayerValues.json');
                 const order = tournament.seedOrder === 'asc' ? 'ascending' : 'descending';
-                message.reply('Please add values to each player for sorting. Players will be sorted in ' + order + ' order. When uploading the file, add `!upload` in the message.', attachment);
+                reply(message, 'Please add values to each player for sorting. Players will be sorted in ' + order + ' order. When uploading the file, add `!upload` in the message.', attachment);
                 return;
             }
             tournament.startEvent();
@@ -402,7 +432,7 @@ client.on('message', async message => {
                 message.channel.send(msg);
             } catch (err) {
                 message.channel.send('Your tournament has started! View real-time pairings and standings at https://slashinfty.github.io/bracketeer/viewer?data=' + tournament.eventID);
-                console.log(err);
+                console.error(err);
                 return;
             }
             const number = EventManager.tournaments.reduce((acc, cur) => acc += cur.active, 0);
@@ -415,15 +445,15 @@ client.on('message', async message => {
         if (/^!list$/i.test(message.content)) {
             const activePlayers = tournament.players.filter(p => p.active).map(a => a.alias);
             const count = activePlayers.length;
-            const list = count === 0 || tournament.active ? '' : '\n\n' + activePlayers.toString().replace(/,/g, ', '); 
-            message.channel.send('There are ' + count + ' active players.' + list);
+            const list = count === 0 || tournament.active ? '' : '\n\n' + activePlayers.toString().replace(/,/g, ', ');
+            send(message, 'There are ' + count + ' active players.' + list);
         }
 
         // Get a copy of the tournament in JSON format with !json
         if (/^!json$/i.test(message.content)) {
             const buffer = Buffer.from(JSON.stringify(tournament));
             const attachment = new Discord.MessageAttachment(buffer, tournament.name + '.json');
-            message.reply('Here is a copy of your tournament.', attachment);
+            reply(message, 'Here is a copy of your tournament.', attachment);
         }
 
         // End a tournament early with !end
@@ -435,7 +465,7 @@ client.on('message', async message => {
             try {
                 message.channel.send('The tournament is now over.\n```\n' + info(tournament) + '\n```', attachment);
             } catch (err) {
-                message.channel.send('The tournament is now over.');
+                message.channel.send('The tournament is now over.', attachment);
                 console.error(err);
             }
             EventManager.removeTournament(tournament);
@@ -453,13 +483,13 @@ client.on('message', async message => {
         let seed = 0;
         let username = null;
         if (tournament.etc.hasOwnProperty('waiting') && tournament.etc.waiting) {
-            message.react('❌');
+            react(message, false);
             return;
         }
         if (tournament.etc.hasOwnProperty('chess')) {
             const usernameArray = message.content.match(/(?<=[!J|!join]\s)[\w-]+/);
             if (usernameArray === null) {
-                message.react('❌');
+                react(message, false);
                 return;
             }
             username = usernameArray[0];
@@ -471,7 +501,7 @@ client.on('message', async message => {
                     seed = obj.perfs[rule].rating;
                 } catch (error) {
                     console.error(error);
-                    message.react('❌');
+                    react(message, false);
                     return;
                 }
             } else {
@@ -482,18 +512,18 @@ client.on('message', async message => {
                     seed = obj.hasOwnProperty(rule) ? obj[rule].last.rating : 1200;
                 } catch (error) {
                     console.error(error);
-                    message.react('❌');
+                    react(message, false);
                     return;
                 }
             }
         }
         let add = tournament.addPlayer(message.author.username, message.author.id, seed);
         if (add) {
-            message.react('✅');
+            react(message, true);
             const p = tournament.players.find(p => p.id === message.author.id);
             p.etc.chess = username;
         }
-        else message.react('❌');
+        else react(message, false);
         return;
     }
 
@@ -501,14 +531,14 @@ client.on('message', async message => {
     if (/^!(p|pairing)$/i.test(message.content)) {
         const active = tournament.activeMatches();
         const match = active.find(m => m.playerOne.id === message.author.id || m.playerTwo.id === message.author.id);
-        if (match === undefined) message.reply('You do not have an active match.');
-        else message.reply('Round ' + match.round + ' Match ' + match.matchNumber + ' - ' + match.playerOne.alias + ' vs ' + match.playerTwo.alias);
+        if (match === undefined) reply(message, 'You do not have an active match.');
+        else reply(message, 'Round ' + match.round + ' Match ' + match.matchNumber + ' - ' + match.playerOne.alias + ' vs ' + match.playerTwo.alias);
     }
 
     // Get pairings and standings with !info or !status
     if (/^!(info|status)$/i.test(message.content)) {
         info(tournament);
-        message.reply('You can view real-time pairings and standings at https://slashinfty.github.io/bracketeer/viewer?data=' + tournament.eventID);
+        reply(message, 'You can view real-time pairings and standings at https://slashinfty.github.io/bracketeer/viewer?data=' + tournament.eventID)
         return;
     }
 
@@ -526,7 +556,7 @@ client.on('message', async message => {
             reportingPlayer = match.playerOne;
             if (games[0] === 0 && games[1] === 0) {
                 tournament.undoResults(match);
-                message.react('✅');
+                react(message, true);
                 info(tournament);
                 return;
             }
@@ -536,24 +566,24 @@ client.on('message', async message => {
             match = active.find(m => m.playerOne.id === reportingPlayer.id || m.playerTwo.id === reportingPlayer.id);
         }
         if (reportingPlayer === undefined || match === undefined) {
-            message.react('❌');
+            react(message, false);
             return;
         }
         let newMatches = [];
         if (match.playerOne === reportingPlayer) newMatches = tournament.result(match, games[0], games[1], games[2]);
         else newMatches = tournament.result(match, games[1], games[0], games[2]);
         if (newMatches === null) {
-            message.react('❌');
+            react(message, false);
             return;
         }
-        message.react('✅');
+        react(message, true);
         info(tournament);
         if (newMatches.length > 0) {
             let msg = 'There are new matches!\n```\n' + matchTable(newMatches) + '\n```';
             try {
                 message.channel.send(msg);
             } catch (err) {
-                message.channel.send('There are new matches!')
+                send(message, 'There are new matches!')
                 console.log(err);
                 return;
             }
@@ -561,7 +591,7 @@ client.on('message', async message => {
         if (!tournament.active) {
             const buffer = Buffer.from(JSON.stringify(tournament));
             const attachment = new Discord.MessageAttachment(buffer, tournament.name + '.json');
-            message.channel.send('The tournament is now over.\n```\n' + info(tournament) + '\n```', attachment);
+            send(message, 'The tournament is now over.\n```\n' + info(tournament) + '\n```', attachment);
             const arch = path.join(__dirname + '/static/archive.json');
             const contents = fs.readFileSync(arch);
             const archive = JSON.parse(contents);
@@ -582,16 +612,16 @@ client.on('message', async message => {
         if (player === undefined) message.react('❌');
         const newMatches = tournament.removePlayer(player);
         if (newMatches === false) {
-            message.react('❌');
+            react(message, false);
             return;
-        } else message.react('✅');
+        } else react(message, true);
         info(tournament);
         if (typeof newMatches === 'object' && newMatches.length > 0) {
             let msg = 'There are new matches!\n```\n' + matchTable(newMatches) + '\n```';
             try {
                 message.channel.send(msg);
             } catch (err) {
-                message.channel.send('There are new matches!')
+                send(message, 'There are new matches!')
                 console.log(err);
                 return;
             }
@@ -599,7 +629,7 @@ client.on('message', async message => {
         if (!tournament.active) {
             const buffer = Buffer.from(JSON.stringify(tournament));
             const attachment = new Discord.MessageAttachment(buffer, tournament.name + '.json');
-            message.channel.send('The tournament is now over.\n```\n' + info(tournament) + '\n```', attachment);
+            send(message, 'The tournament is now over.\n```\n' + info(tournament) + '\n```', attachment);
             EventManager.removeTournament(tournament);
             const ref = db.ref('tournaments');
             ref.child(tournament.eventID).set(null);
@@ -622,14 +652,14 @@ client.on('guildMemberRemove', member => {
         try {
             message.channel.send(msg);
         } catch (err) {
-            message.channel.send('There are new matches!')
+            send(message, 'There are new matches!')
             console.log(err);
         }
     }
     if (!tournament.active) {
         const buffer = Buffer.from(JSON.stringify(tournament));
         const attachment = new Discord.MessageAttachment(buffer, tournament.name + '.json');
-        message.channel.send('The tournament is now over.\n```\n' + info(tournament) + '\n```', attachment);
+        send(message, 'The tournament is now over.\n```\n' + info(tournament) + '\n```', attachment);
         EventManager.removeTournament(tournament);
         const ref = db.ref('tournaments');
         ref.child(tournament.eventID).set(null);
