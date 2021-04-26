@@ -239,7 +239,7 @@ client.on('message', async message => {
 
     // Get help with !bracketeer
     if (/^!(bracketeer|help)$/i.test(message.content)) {
-        reply(message, 'If you need help, please check out https://slashinfty.github.io/bracketeer/');
+        reply(message, "Here are some commands available to players:\n```\n!j\nJoin the tournament\n\n!p\nGet your current match\n\n!r w-l-d\nReport your match\n\n!q\nQuit the tournament\n```If you need more help, check out https://slashinfty.github.io/bracketeer"  );
         return;
     }
 
@@ -479,7 +479,7 @@ client.on('message', async message => {
     }
 
     // Join a tournament with !join or !J
-    if (/^!(j(?=\s|$)|join)(\s\w*)?/i.test(message.content)) {
+    if (/^!(j(?=\s|$)|join)(\s<@!\d+>)?(\s\w*)?/i.test(message.content)) {
         let seed = 0;
         let username = null;
         if (tournament.etc.hasOwnProperty('waiting') && tournament.etc.waiting) {
@@ -487,7 +487,7 @@ client.on('message', async message => {
             return;
         }
         if (tournament.etc.hasOwnProperty('chess')) {
-            const usernameArray = message.content.match(/(?<=[!J|!join]\s)[\w-]+/);
+            const usernameArray = message.content.match(/(?<=[!J|!join](\s<@!\d+>)?\s)[\w-]+/);
             if (usernameArray === null) {
                 react(message, false);
                 return;
@@ -517,7 +517,12 @@ client.on('message', async message => {
                 }
             }
         }
-        let add = tournament.addPlayer(message.author.username, message.author.id, seed);
+        let add;
+        if ((message.member.hasPermission('ADMINISTRATOR') || [...message.member.roles.cache.keys()].some(x => RoleManager.includes(x))) && message.mentions.users.size === 1) {
+            const taggedUser = message.mentions.users.first();
+            tournament.addPlayer(taggedUser.username, taggedUser.id, seed);
+        }
+        else add = tournament.addPlayer(message.author.username, message.author.id, seed);
         if (add) {
             react(message, true);
             const p = tournament.players.find(p => p.id === message.author.id);
