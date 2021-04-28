@@ -26,7 +26,8 @@ const app = admin.initializeApp({
 const db = app.database();
 
 // Prepare Tournament Organizer
-var EventManager, RoleManager;
+var EventManager;
+var RoleManager;
 
 // Start Discord
 const client = new Discord.Client();
@@ -227,7 +228,9 @@ client.once('ready', () => {
 
     // Recover roles
     const rolesContent = fs.readFileSync(roles);
+    console.log(rolesContent);
     RoleManager = JSON.parse(rolesContent);
+    console.log(RoleManager);
 
     console.log('Number of tournaments that are active: ' + EventManager.tournaments.reduce((acc, cur) => acc += cur.active, 0));
 });
