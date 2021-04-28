@@ -203,8 +203,8 @@ client.once('ready', () => {
 
     // Create role file if necessary
     const roles = path.join(__dirname + '/static/roles.json');
-    console.log(roles);
     if (!fs.existsSync(roles)) {
+        console.log('why is it here?');
         const empty = [];
         fs.writeFileSync(roles, JSON.stringify(empty));
     }
