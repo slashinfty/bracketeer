@@ -203,6 +203,7 @@ client.once('ready', () => {
 
     // Create role file if necessary
     const roles = path.join(__dirname + '/static/roles.json');
+    console.log(roles);
     if (!fs.existsSync(roles)) {
         const empty = [];
         fs.writeFileSync(roles, JSON.stringify(empty));
@@ -228,9 +229,7 @@ client.once('ready', () => {
 
     // Recover roles
     const rolesContent = fs.readFileSync(roles);
-    console.log(rolesContent);
     RoleManager = JSON.parse(rolesContent);
-    console.log(RoleManager);
 
     console.log('Number of tournaments that are active: ' + EventManager.tournaments.reduce((acc, cur) => acc += cur.active, 0));
 });
