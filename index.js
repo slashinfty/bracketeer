@@ -244,7 +244,7 @@ client.on('message', async message => {
         return;
     }
 
-    if (message.member.hasPermission('ADMINISTRATOR') && /^!to\s(add|remove)\s<@!\d+>/i.test(message.content) && message.mentions.roles.size === 1) {
+    if (message.member.hasPermission('ADMINISTRATOR') && /^!to\s(add|remove)\s<@&\d+>/i.test(message.content) && message.mentions.roles.size === 1) {
         const roleID = message.mentions.roles.first().id;
         if (message.content.includes('add')) {
             if (!RoleManager.includes(roleID)) RoleManager.push(roleID);
