@@ -167,13 +167,13 @@ const info = t => {
                     obj['oppCumulative'] = s.tiebreakers.oppCumulative;
                     break;
                 case 'magic-tcg':
-                    obj['oppMatchWinPctM'] = isNaN(s.tiebreakers.oppMatchWinPctM) ? 0 : s.tiebreakers.oppMatchWinPctM;
-                    obj['gameWinPct'] = isNaN(s.tiebreakers.gameWinPct) ? 0 : s.tiebreakers.gameWinPct;
-                    obj['oppGameWinPct'] = isNaN(s.tiebreakers.oppGameWinPct) ? 0 : s.tiebreakers.oppGameWinPct;
+                    obj['oppMatchWinPctM'] = s.tiebreakers.oppMatchWinPctM;
+                    obj['gameWinPct'] = s.tiebreakers.gameWinPct;
+                    obj['oppGameWinPct'] = s.tiebreakers.oppGameWinPct;
                     break;
                 case 'pokemon-tcg':
-                    obj['oppMatchWinPctP'] = isNaN(s.tiebreakers.oppMatchWinPctP) ? 0 : s.tiebreakers.oppMatchWinPctP;
-                    obj['oppOppMatchWinPct'] = isNaN(s.tiebreakers.oppOppMatchWinPct) ? 0 : s.tiebreakers.oppOppMatchWinPct;
+                    obj['oppMatchWinPctP'] = s.tiebreakers.oppMatchWinPctP;
+                    obj['oppOppMatchWinPct'] = s.tiebreakers.oppOppMatchWinPct;
                     break;
                 default:
                     break;
