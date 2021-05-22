@@ -621,7 +621,7 @@ client.on('message', async message => {
             react(message, false);
             return;
         } else react(message, true);
-        info(tournament);
+        if (tournaments.active) info(tournament);
         if (typeof newMatches === 'object' && newMatches.length > 0) {
             let msg = 'There are new matches!\n```\n' + matchTable(newMatches) + '\n```';
             try {
