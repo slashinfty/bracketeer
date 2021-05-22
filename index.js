@@ -148,6 +148,7 @@ const info = t => {
             matchPoints: s.matchPoints
         };
         const a = [i + 1, s.alias, s.matchPoints];
+        const percentify = num => (Math.round(num * 1e4) / 1e2) + '%';
         t.tiebreakers.forEach(b => {
             switch (b) {
                 case 'buchholz-cut1':
@@ -167,13 +168,13 @@ const info = t => {
                     obj['oppCumulative'] = s.tiebreakers.oppCumulative;
                     break;
                 case 'magic-tcg':
-                    obj['oppMatchWinPctM'] = s.tiebreakers.oppMatchWinPctM;
-                    obj['gameWinPct'] = s.tiebreakers.gameWinPct;
-                    obj['oppGameWinPct'] = s.tiebreakers.oppGameWinPct;
+                    obj['oppMatchWinPctM'] = percentify(s.tiebreakers.oppMatchWinPctM);
+                    obj['gameWinPct'] = percentify(s.tiebreakers.gameWinPct);
+                    obj['oppGameWinPct'] = percentify(s.tiebreakers.oppGameWinPct);
                     break;
                 case 'pokemon-tcg':
-                    obj['oppMatchWinPctP'] = s.tiebreakers.oppMatchWinPctP;
-                    obj['oppOppMatchWinPct'] = s.tiebreakers.oppOppMatchWinPct;
+                    obj['oppMatchWinPctP'] = percentify(s.tiebreakers.oppMatchWinPctP);
+                    obj['oppOppMatchWinPct'] = percentify(s.tiebreakers.oppOppMatchWinPct);
                     break;
                 default:
                     break;
