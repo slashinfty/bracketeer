@@ -519,11 +519,12 @@ client.on('message', async message => {
             }
         }
         let add;
+        const getName = member => member.nickname !== null ? member.nickname : member.user.username;
         if ((message.member.hasPermission('ADMINISTRATOR') || [...message.member.roles.cache.keys()].some(x => RoleManager.includes(x))) && message.mentions.users.size === 1) {
             const taggedUser = message.mentions.users.first();
-            tournament.addPlayer(taggedUser.username, taggedUser.id, seed);
+            tournament.addPlayer(getName(taggedUser), taggedUser.id, seed);
         }
-        else add = tournament.addPlayer(message.author.username, message.author.id, seed);
+        else add = tournament.addPlayer(getName(message.member), message.author.id, seed);
         if (add) {
             react(message, true);
             const p = tournament.players.find(p => p.id === message.author.id);
@@ -644,6 +645,17 @@ client.on('message', async message => {
 
 });
 
+// If a user updates their nickname, change it
+client.on('guildMemberUpdate', (oldMember, newMember) => {
+    const tournament = EventManager.tournaments.find(t => t.eventID === message.channel.id);
+    if (tournament === undefined) return;
+    const player = tournament.players.find(p => p.id === member.id);
+    if (player === undefined) return;
+    if (newMember.nickname === null || oldMember.nickname === newMember.nickname) return;
+    player.alias = newMember.nickname;
+    if (tournament.active) info(tournament);
+});
+
 // If a user leaves the server, remove them from the tournament
 client.on('guildMemberRemove', member => {
     const tournament = EventManager.tournaments.find(t => t.eventID === message.channel.id);
@@ -652,7 +664,7 @@ client.on('guildMemberRemove', member => {
     if (player === undefined) return;
     const newMatches = tournament.removePlayer(player);
     if (newMatches === false) return;
-    info(tournament);
+    if(tournament.active) info(tournament);
     if (typeof newMatches === object && newMatches.length > 0) {
         let msg = 'There are new matches!\n```\n' + matchTable(newMatches) + '\n```';
         try {
