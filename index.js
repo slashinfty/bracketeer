@@ -523,7 +523,7 @@ client.on('message', async message => {
         const getName = member => member.nickname !== null ? member.nickname : member.user.username;
         if ((message.member.hasPermission('ADMINISTRATOR') || [...message.member.roles.cache.keys()].some(x => RoleManager.includes(x))) && message.mentions.users.size === 1) {
             const taggedUser = message.mentions.users.first();
-            tournament.addPlayer(getName(taggedUser), taggedUser.id, seed);
+            add = tournament.addPlayer(getName(taggedUser), taggedUser.id, seed);
         }
         else add = tournament.addPlayer(getName(message.member), message.author.id, seed);
         if (add) {
