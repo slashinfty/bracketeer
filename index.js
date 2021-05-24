@@ -650,12 +650,13 @@ client.on('message', async message => {
 client.on('guildMemberUpdate', (oldMember, newMember) => {
     const tournamentIDs = EventManager.tournaments.map(t => t.eventID);
     const tournamentID = [...oldMember.guild.channels.cache.keys()].find(x => tournamentIDs.includes(x));
-    const tournament = EventManager.tournaments.find(t => t.id === tournamentID);
+    const tournament = EventManager.tournaments.find(t => t.eventID === tournamentID);
     if (tournament === undefined) return;
     const player = tournament.players.find(p => p.id === oldMember.id);
     if (player === undefined) return;
-    if (newMember.nickname === null || oldMember.nickname === newMember.nickname) return;
-    player.alias = newMember.nickname;
+    const getName = member => member.nickname !== null ? member.nickname : member.user.username;
+    if (getName(oldMember) === getName(newMember)) return;
+    player.alias = getName(newMember);
     if (tournament.active) info(tournament);
 });
 
@@ -663,7 +664,7 @@ client.on('guildMemberUpdate', (oldMember, newMember) => {
 client.on('guildMemberRemove', member => {
     const tournamentIDs = EventManager.tournaments.map(t => t.eventID);
     const tournamentID = [...oldMember.guild.channels.cache.keys()].find(x => tournamentIDs.includes(x));
-    const tournament = EventManager.tournaments.find(t => t.id === tournamentID);
+    const tournament = EventManager.tournaments.find(t => t.eventID === tournamentID);
     if (tournament === undefined) return;
     const player = tournament.players.find(p => p.id === member.id);
     if (player === undefined) return;
