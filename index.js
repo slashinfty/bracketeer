@@ -648,6 +648,7 @@ client.on('message', async message => {
 
 // If a user updates their nickname, change it
 client.on('guildMemberUpdate', (oldMember, newMember) => {
+    const tournamentIDs = EventManager.tournaments.map(t => t.eventID);
     const tournament = [...oldMember.guild.channels.cache.keys()].find(x => tournamentIDs.includes(x));
     if (tournament === undefined) return;
     const player = tournament.players.find(p => p.id === oldMember.id);
@@ -659,6 +660,7 @@ client.on('guildMemberUpdate', (oldMember, newMember) => {
 
 // If a user leaves the server, remove them from the tournament
 client.on('guildMemberRemove', member => {
+    const tournamentIDs = EventManager.tournaments.map(t => t.eventID);
     const tournament = [...member.guild.channels.cache.keys()].find(x => tournamentIDs.includes(x));
     if (tournament === undefined) return;
     const player = tournament.players.find(p => p.id === member.id);
