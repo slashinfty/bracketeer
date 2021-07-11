@@ -19,7 +19,7 @@ $(document).ready(() => {
     database = firebase.database();
 
     // Get initial data
-    database.ref('tournaments').get().then(snapshot => {
+    database.ref('viewer').get().then(snapshot => {
         data = snapshot.val();
         // Fill dropdown with tournaments
         for (const prop in data) {
@@ -33,7 +33,7 @@ $(document).ready(() => {
         let url = new URL(window.location.href);
         if (url.searchParams.has('data')) select.value = url.searchParams.get('data');
 
-        var ref = database.ref('tournaments');
+        var ref = database.ref('viewer');
         ref.on('value', snap => {
             const tableData = snap.val()[select.value];
             if (select.value.length === 0) {
@@ -78,7 +78,7 @@ $(document).ready(() => {
 });
 
 const loadTournament = () => {
-    database.ref('tournaments/' + select.value).get().then(snapshot => {
+    database.ref('viewer/' + select.value).get().then(snapshot => {
         const newEvent = snapshot.val();
         if (newEvent === null) {
             alert('The tournament is now over.');
